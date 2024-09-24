@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.hoverEffect:hover {
+   box-shadow: 0 0 20px rgba(127, 86, 217, 0.7);
+}
+
+
+.ql-editor img {
+  width: 300px;
+  height: auto; /* Maintain aspect ratio */
+}

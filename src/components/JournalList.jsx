@@ -1,19 +1,60 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 function JournalList() {
   const [showSearch, setShowSearch] = useState(false);
+  const [entries, setEntries] = useState([]);
 
-  // Handler to toggle search bar visibility
   const handleSearchClick = () => {
     setShowSearch(true);
   };
 
-  // Handler to close the search bar
   const handleCloseSearch = () => {
     setShowSearch(false);
   };
+
+  const fetchEntries = async () => {
+    const dbRequest = indexedDB.open("JournalDB", 1);
+
+    dbRequest.onsuccess = (event) => {
+      const db = event.target.result;
+      const transaction = db.transaction(["journals"], "readonly");
+      const objectStore = transaction.objectStore("journals");
+      const allEntriesRequest = objectStore.getAll();
+
+      allEntriesRequest.onsuccess = (event) => {
+        setEntries(event.target.result);
+      };
+    };
+
+    dbRequest.onerror = (event) => {
+      console.error("Database error:", event.target.error);
+    };
+  };
+useEffect(() => {
+  fetchEntries(); // Initial fetch when component mounts
+
+  const intervalId = setInterval(fetchEntries, 5000); // Fetch every 5 seconds
+
+  return () => {
+    clearInterval(intervalId); // Clean up the interval on unmount
+  };
+}, []);
+  useEffect(() => {
+    fetchEntries();
+
+    const handleJournalUpdate = () => {
+      fetchEntries();
+    };
+
+    document.addEventListener("journalUpdated", handleJournalUpdate);
+
+    return () => {
+      document.removeEventListener("journalUpdated", handleJournalUpdate);
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col w-[254px] gap-2 ">
+    <div className="flex flex-col w-[254px] gap-2 border-r ">
       <div>
         <div className="flex justify-between items-center mt-4 mx-3 ">
           {!showSearch && (
@@ -51,7 +92,7 @@ function JournalList() {
                 />
                 <button
                   onClick={handleCloseSearch}
-                  className=" right-2 text-gray-600 cursor-pointer "
+                  className="right-2 text-gray-600 cursor-pointer"
                 >
                   <img
                     src="../images/icons/close.png"
@@ -75,36 +116,34 @@ function JournalList() {
         </div>
       </div>
       <div>
-        <div className="flex flex-col  w-[232px] mx-auto mt-2 pb-1">
-          <h1 className="text-sm text-[rgba(152,162,179,1)] font-medium ">
+        <div className="flex flex-col w-[232px] mx-auto mt-2 pb-1">
+          <h1 className="text-sm text-[rgba(152,162,179,1)] font-medium">
             Today
           </h1>
-          <div className="flex flex-col justify-center gap-3 w-[208px] border-b  py-[6px] mb-2">
-            <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold">
-              Home dashboard
-            </h1>
-            <div className="flex gap-2">
-              <h1 className="text-xs text-[rgba(71,84,103,1)] font-medium">
-                Home dashboard
-              </h1>
-              <h1 className="text-xs text-[rgba(152,162,179,1)] font-medium">
-                Home dashboard
-              </h1>
-            </div>
-          </div>
-          <div className="flex flex-col justify-center gap-3 w-[208px] border-b  py-[6px] mb-2">
-            <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold">
-              Home dashboard
-            </h1>
-            <div className="flex gap-2">
-              <h1 className="text-xs text-[rgba(71,84,103,1)] font-medium">
-                Home dashboard
-              </h1>
-              <h1 className="text-xs text-[rgba(152,162,179,1)] font-medium">
-                Home dashboard
-              </h1>
-            </div>
-          </div>
+          {entries.length > 0 ? (
+            entries.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex flex-col justify-center gap-3 w-[208px] border-b py-[6px] mb-2"
+              >
+                <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold">
+                  {entry.title}
+                </h1>
+                <div className="flex gap-2">
+                  <h1 className="text-xs text-[rgba(71,84,103,1)] font-medium">
+                    {entry.date}
+                  </h1>
+                  <h1 className="text-xs text-[rgba(152,162,179,1)] font-medium">
+                    {entry.sometext}
+                  </h1>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-[rgba(152,162,179,1)] font-medium">
+              No entries found.
+            </p>
+          )}
         </div>
       </div>
     </div>

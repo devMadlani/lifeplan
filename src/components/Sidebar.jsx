@@ -1,4 +1,5 @@
 import React from "react";
+import Empty from "./Empty";
 
 function Sidebar() {
   return (
@@ -27,7 +28,7 @@ function Sidebar() {
       </div>
       <div>
         <div className="flex flex-col w-[222px] mt-4 pb-1 mx-auto border-b border-[rgba(234,236,240,1)]">
-          <div className="flex items-center gap-3 w-[208px] mx-auto my-2">
+          <div  className="flex items-center gap-3 w-[208px] mx-auto my-2">
             <img
               src="../images/icons/home.png"
               className="h-[24px] ml-1"
