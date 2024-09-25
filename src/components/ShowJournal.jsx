@@ -92,9 +92,7 @@ function ShowJournal({ journals }) {
                 </div>
               ))}
           </div>
-          <div className="desc max-w-[700px] my-4 text-left">
-            {description}
-          </div>
+          <div className="desc max-w-[700px] my-4 text-left">{description}</div>
 
           <div className="audio">
             <div className="mt-4">
