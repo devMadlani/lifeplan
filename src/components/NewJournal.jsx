@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
-const DATABASE_NAME = "JournalDB";
-const STORE_NAME = "journals";
+const DATABASE_NAME = "myJournal";
+const STORE_NAME = "allJournal";
 
 function NewJournal({onSave}) {
   const [isRecording, setIsRecording] = useState(false);
@@ -87,6 +87,8 @@ function NewJournal({onSave}) {
   };
 
   const handleSave = () => {
+    console.log(DATABASE_NAME);
+    
     const dbRequest = indexedDB.open(DATABASE_NAME, 1);
     dbRequest.onsuccess = (event) => {
       const db = event.target.result;
@@ -223,7 +225,7 @@ function NewJournal({onSave}) {
       simulateFileUpload(uploadedFile);
     }
   };
-  console.log(file);
+ 
  const simulateFileUpload = (uploadedFile) => {
    let progress = 0;
    const interval = setInterval(() => {

@@ -18,12 +18,12 @@ function JournalList({ onAddClick }) {
   };
 
   const fetchEntries = async () => {
-    const dbRequest = indexedDB.open("JournalDB", 1);
+    const dbRequest = indexedDB.open("myJournal", 1);
 
     dbRequest.onsuccess = (event) => {
       const db = event.target.result;
-      const transaction = db.transaction(["journals"], "readonly");
-      const objectStore = transaction.objectStore("journals");
+      const transaction = db.transaction(["allJournal"], "readonly");
+      const objectStore = transaction.objectStore("allJournal");
       const allEntriesRequest = objectStore.getAll();
 
       allEntriesRequest.onsuccess = (event) => {
