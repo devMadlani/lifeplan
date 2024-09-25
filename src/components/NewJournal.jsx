@@ -47,6 +47,7 @@ function NewJournal({onSave}) {
   };
   const saveJournal = (db) => {
     const journalData = {
+      date:Date(Date.now()),
       title: title,
       description: value,
       tags: tags,

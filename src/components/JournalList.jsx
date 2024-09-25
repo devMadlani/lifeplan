@@ -6,6 +6,7 @@ function JournalList({ onAddClick }) {
   const { setSelectedEntry } = useJournal(); // Use the context
   const [showSearch, setShowSearch] = useState(false);
   const [entries, setEntries] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); // State to store the search term
 
   const handleSearchClick = () => {
     setShowSearch(true);
@@ -13,6 +14,7 @@ function JournalList({ onAddClick }) {
 
   const handleCloseSearch = () => {
     setShowSearch(false);
+    setSearchTerm(""); // Clear search term when closing
   };
 
   const fetchEntries = async () => {
@@ -36,9 +38,15 @@ function JournalList({ onAddClick }) {
 
   useEffect(() => {
     setInterval(() => {
+      
       fetchEntries(); // Initial fetch when component mounts
     }, 100);
   }, []);
+  
+  // Filter entries based on the search term
+  const filteredEntries = entries.filter((entry) =>
+    entry.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col w-[254px] gap-2 border-r ">
@@ -75,6 +83,8 @@ function JournalList({ onAddClick }) {
                   className={`pl-8 py-[5px] pr-10 border border-gray-300 rounded ${
                     showSearch ? "w-full" : ""
                   } transition-all duration-300 ease-in-out text-xs`}
+                  value={searchTerm} // Controlled input
+                  onChange={(e) => setSearchTerm(e.target.value)} // Update search term
                   autoFocus
                 />
                 <button
@@ -105,8 +115,8 @@ function JournalList({ onAddClick }) {
           <h1 className="text-sm text-[rgba(152,162,179,1)] font-medium">
             Today
           </h1>
-          {entries.length > 0 ? (
-            entries.map((entry) => (
+          {filteredEntries.length > 0 ? ( // Use filtered entries here
+            filteredEntries.map((entry) => (
               <div
                 key={entry.id}
                 className="flex flex-col justify-center gap-3 w-[208px] border-b py-[6px] mb-2 cursor-pointer"
