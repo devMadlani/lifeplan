@@ -1,6 +1,9 @@
+// JournalList.js
 import React, { useEffect, useState } from "react";
+import { useJournal } from "../context/JournalContext"; // Import the context
 
-function JournalList() {
+function JournalList({ onAddClick }) {
+  const { setSelectedEntry } = useJournal(); // Use the context
   const [showSearch, setShowSearch] = useState(false);
   const [entries, setEntries] = useState([]);
 
@@ -30,27 +33,11 @@ function JournalList() {
       console.error("Database error:", event.target.error);
     };
   };
-useEffect(() => {
-  fetchEntries(); // Initial fetch when component mounts
 
-  const intervalId = setInterval(fetchEntries, 100); 
-
-  return () => {
-    clearInterval(intervalId); // Clean up the interval on unmount
-  };
-}, []);
   useEffect(() => {
-    fetchEntries();
-
-    const handleJournalUpdate = () => {
-      fetchEntries();
-    };
-
-    document.addEventListener("journalUpdated", handleJournalUpdate);
-
-    return () => {
-      document.removeEventListener("journalUpdated", handleJournalUpdate);
-    };
+    setInterval(() => {
+      fetchEntries(); // Initial fetch when component mounts
+    }, 100);
   }, []);
 
   return (
@@ -62,7 +49,6 @@ useEffect(() => {
               Journal
             </h1>
           )}
-
           <div
             className={`flex items-center ${
               showSearch ? "w-full" : ""
@@ -73,6 +59,7 @@ useEffect(() => {
                 src="../images/icons/add.png"
                 className="w-[22px] object-contain cursor-pointer"
                 alt="Add"
+                onClick={onAddClick} // Call the onAddClick prop
               />
             </div>
             {showSearch && (
@@ -102,13 +89,12 @@ useEffect(() => {
                 </button>
               </div>
             )}
-
             {!showSearch && (
               <img
                 src="../images/icons/search-lg.png"
                 className="w-[19px] object-contain cursor-pointer"
                 alt="Search"
-                onClick={handleSearchClick} 
+                onClick={handleSearchClick}
               />
             )}
           </div>
@@ -123,7 +109,8 @@ useEffect(() => {
             entries.map((entry) => (
               <div
                 key={entry.id}
-                className="flex flex-col justify-center gap-3 w-[208px] border-b py-[6px] mb-2"
+                className="flex flex-col justify-center gap-3 w-[208px] border-b py-[6px] mb-2 cursor-pointer"
+                onClick={() => setSelectedEntry(entry)} // Set the selected entry
               >
                 <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold">
                   {entry.title}

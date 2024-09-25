@@ -5,7 +5,7 @@ import "react-quill/dist/quill.snow.css";
 const DATABASE_NAME = "JournalDB";
 const STORE_NAME = "journals";
 
-function NewJournal() {
+function NewJournal({onSave}) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
   const mediaRecorderRef = useRef(null);
@@ -18,7 +18,7 @@ function NewJournal() {
   const fileInputRef = useRef(null);
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [title,setTitle] = useState("")
+  const [title, setTitle] = useState("");
   const [value, setValue] = useState("");
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
@@ -45,15 +45,21 @@ function NewJournal() {
       setJournals(request.result);
     };
   };
-
   const saveJournal = (db) => {
     const journalData = {
-      title: document.getElementById("title").value,
+      title: title,
       description: value,
       tags: tags,
       audioUrl: audioUrl,
       videoUrl: videoUrl,
-      file: file ? file.name : null, // Store only the file name for simplicity
+      file: file // Store the actual file as a Blob
+        ? {
+            name: file.name,
+            size: file.size,
+            type: file.type, // Store the file type
+            data: file, // Store the file Blob
+          }
+        : null,
     };
 
     const transaction = db.transaction(STORE_NAME, "readwrite");
@@ -63,13 +69,14 @@ function NewJournal() {
     transaction.oncomplete = () => {
       fetchJournals(db); // Refresh the journal list after saving
       resetForm(); // Clear the form fields
+      onSave(journalData);
       console.log("Dispatching journalSaved event");
       window.dispatchEvent(new Event("journalSaved"));
     };
   };
 
   const resetForm = () => {
-    document.getElementById("title").value = "";
+    setTitle("")
     setValue("");
     setTags([]);
     setAudioUrl(null);
@@ -86,13 +93,24 @@ function NewJournal() {
     };
   };
 
-  const  loadJournal = (journal) => {
+  const loadJournal = (journal) => {
     document.getElementById("title").value = journal.title;
     setValue(journal.description);
     setTags(journal.tags);
     setAudioUrl(journal.audioUrl);
     setVideoUrl(journal.videoUrl);
-    setFile(journal.file); // Display file name, but won't show the actual file
+    if (journal.file) {
+      // Create a URL for the file Blob for display or download
+      const fileBlobUrl = URL.createObjectURL(journal.file.data);
+      setFile({
+        name: journal.file.name,
+        size: journal.file.size,
+        blob: journal.file.data,
+        url: fileBlobUrl, // Store the URL for later use
+      });
+    } else {
+      setFile(null);
+    }
   };
 
   const modules = {
@@ -204,18 +222,15 @@ function NewJournal() {
       simulateFileUpload(uploadedFile);
     }
   };
+  console.log(file);
+ const simulateFileUpload = (uploadedFile) => {
+   let progress = 0;
+   const interval = setInterval(() => {
+     progress += 10; // Increase progress by 10% every second
+     setUploadProgress(progress);
+   }, 100);
+ };
 
-  const simulateFileUpload = (uploadedFile) => {
-    // Simulate an upload process for demonstration
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10; // Increase progress by 10% every second
-      setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-      }
-    }, 100);
-  };
 
   const handleDragOver = (event) => {
     event.preventDefault();
@@ -470,7 +485,7 @@ function NewJournal() {
                       {/* Icon next to the progress bar */}
                       <div className="border rounded-lg w-[30px] h-[30px] flex justify-center items-center mr-2">
                         <img
-                          src="../images/icons/document.png" // Replace with your document icon
+                          src="../images/icons/file.png" // Replace with your document icon
                           className="object-none"
                         />
                       </div>

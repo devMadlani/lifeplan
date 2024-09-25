@@ -1,13 +1,13 @@
 import React from "react";
-
+import { JournalProvider } from "./context/JournalContext";
 import Main from "./components/Main";
 
 function App() {
   return (
 
-    <div>
+    <JournalProvider>
       <Main/>
-    </div>
+    </JournalProvider>
    
   );
 }
