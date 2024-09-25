@@ -18,6 +18,7 @@ function NewJournal() {
   const fileInputRef = useRef(null);
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [title,setTitle] = useState("")
   const [value, setValue] = useState("");
   const [tags, setTags] = useState([]);
   const [input, setInput] = useState("");
@@ -243,8 +244,7 @@ function NewJournal() {
   //rich text
 
   return (
-    <div >
-      
+    <div>
       <div className="flex flex-col gap-4 h-[758px] flex-grow">
         <div className="bg-[rgba(252,252,253,1)] flex justify-between">
           <h1 className="text-[20px] text-[rgba(16,24,40,1)] my-2 mx-4">
@@ -273,6 +273,8 @@ function NewJournal() {
               </h1>
               <input
                 type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 id="title" // Add id for accessing in saveJournal
                 className="text-[16px] border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)] border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl pl-4 h-[44px] w-[300px] sm:w-[520px] lg:w-[766px]"
                 placeholder="Enter your title"
@@ -365,11 +367,15 @@ function NewJournal() {
                 <h1 className="text-[14px]  mb-1">Record Video</h1>
                 <div className="relative border border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl px-4 w-[290px] h-[114px] lg:w-[366px] flex flex-col items-center justify-center shadow-lg transition-shadow duration-300 hover:shadow-2xl">
                   <div
-                    onClick={isRecording ? stopRecording : startRecording}
+                    onClick={
+                      isRecordingVideo
+                        ? stopRecordingVideo
+                        : startRecordingVideo
+                    }
                     className={`cursor-pointer border rounded-full w-[50px] h-[50px] flex justify-center items-center ${
-                      isRecording ? "bg-red-500" : ""
+                      isRecordingVideo ? "bg-red-500" : ""
                     } hover:${
-                      isRecording ? "bg-red-600" : " hoverEffect "
+                      isRecordingVideo ? "bg-red-600" : " hoverEffect "
                     } transition duration-200`}
                   >
                     <img
@@ -380,9 +386,10 @@ function NewJournal() {
                   </div>
                   <h1 className="text-sm mt-2 text-gray-700">
                     <span className="text-purple-600 font-semibold">
-                      {isRecording ? "Recording..." : "Click"}
+                      {isRecordingVideo ? "Recording..." : "Click"}
                     </span>{" "}
-                    to {isRecording ? "stop recording" : "start recording..."}
+                    to{" "}
+                    {isRecordingVideo ? "stop recording" : "start recording..."}
                   </h1>
                 </div>
 
@@ -391,7 +398,7 @@ function NewJournal() {
                   ref={videoRef}
                   autoPlay
                   className={`${
-                    isRecording ? "visible" : "hidden"
+                    isRecordingVideo ? "visible" : "hidden"
                   } rounded-xl mt-4 w-full max-w-[290px] lg:max-w-[366px]`}
                 />
 
@@ -494,7 +501,7 @@ function NewJournal() {
                 />
               </div>
             </div>
-            <div className="flex gap-1 pt-0 border-t border-[rgba(234,236,240,1)] min-w-[320px] w-[826px] justify-end px-2 ">
+            <div className="flex gap-1 pt-0 border-t border-[rgba(234,236,240,1)] min-w-[320px] w-[826px] justify-end  ">
               <button
                 type="button"
                 className="mt-3  rounded-xl border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)] border-[rgba(208,213,221,1)] px-4 py-[10px] text-[14px] text-[rgba(52, 64, 84, 1)] font-semibold"

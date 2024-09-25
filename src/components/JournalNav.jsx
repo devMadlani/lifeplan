@@ -2,7 +2,7 @@ import React from "react";
 
 function JournalNav() {
   return (
-    <div className="flex justify-between pl-6 mt-2 max-w-[1067px] mb-3">
+    <div className="flex justify-between gap-4 pl-6 mt-2 max-w-[1067px] mb-3">
       <div className="relative ">
         <img
           src="../images/search.png"

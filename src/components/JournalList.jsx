@@ -33,7 +33,7 @@ function JournalList() {
 useEffect(() => {
   fetchEntries(); // Initial fetch when component mounts
 
-  const intervalId = setInterval(fetchEntries, 5000); // Fetch every 5 seconds
+  const intervalId = setInterval(fetchEntries, 100); 
 
   return () => {
     clearInterval(intervalId); // Clean up the interval on unmount
@@ -103,13 +103,12 @@ useEffect(() => {
               </div>
             )}
 
-            {/* Search Icon (click to open search input) */}
             {!showSearch && (
               <img
                 src="../images/icons/search-lg.png"
                 className="w-[19px] object-contain cursor-pointer"
                 alt="Search"
-                onClick={handleSearchClick} // Show search input on click
+                onClick={handleSearchClick} 
               />
             )}
           </div>
