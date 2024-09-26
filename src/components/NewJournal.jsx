@@ -12,9 +12,9 @@ function NewJournal({onSave}) {
   const audioChunksRef = useRef([]);
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
   const [videoUrl, setVideoUrl] = useState(null);
+  const videoRef = useRef(null);
   const mediaRecorderVideoRef = useRef(null);
   const videoChunksRef = useRef([]);
-  const videoRef = useRef(null);
   const fileInputRef = useRef(null);
   const [file, setFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -182,7 +182,7 @@ function NewJournal({onSave}) {
       video: true,
       audio: true,
     });
-    videoRef.current.srcObject = stream; // Display the video stream
+    videoRef.current.srcObject = stream;  
 
     mediaRecorderVideoRef.current = new MediaRecorder(stream);
 
@@ -195,8 +195,9 @@ function NewJournal({onSave}) {
         type: "video/webm",
       });
       const url = URL.createObjectURL(videoBlob);
+      console.log(url)
       setVideoUrl(url);
-      videoChunksRef.current = []; // Clear the chunks for the next recording
+      videoChunksRef.current = []; 
     };
 
     mediaRecorderVideoRef.current.start();
