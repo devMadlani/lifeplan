@@ -87,15 +87,15 @@ const FileUpload = () => {
         content: fileContent,
       };
 
-      store.add(fileRecord);
+      const request = store.add(fileRecord);
 
-      transaction.oncomplete = () => {
+      request.onsuccess = () => {
         console.log("File stored successfully:", fileRecord);
         setUploading(false);
         loadFiles(); // Refresh the file list after upload
       };
 
-      transaction.onerror = (event) => {
+      request.onerror = (event) => {
         console.error("Error storing file:", event.target.error);
         setUploading(false);
       };
@@ -108,14 +108,14 @@ const FileUpload = () => {
     const db = await openIndexedDB();
     const transaction = db.transaction("files", "readwrite");
     const store = transaction.objectStore("files");
-    store.delete(id);
+    const request = store.delete(id);
 
-    transaction.oncomplete = () => {
+    request.onsuccess = () => {
       console.log("File deleted:", id);
       setFileData((prevData) => prevData.filter((file) => file.id !== id));
     };
 
-    transaction.onerror = (event) => {
+    request.onerror = (event) => {
       console.error("Error deleting file:", event.target.error);
     };
   };
@@ -154,9 +154,9 @@ const FileUpload = () => {
 
       <h3 className="text-md font-semibold mt-4">Uploaded Files:</h3>
       <ul className="mt-2">
-        {fileData.map((file, index) => (
+        {fileData.map((file) => (
           <li
-            key={index}
+            key={file.id}
             className="flex justify-between items-center p-2 border-b"
           >
             <span>
