@@ -4,6 +4,7 @@ import JournalNav from "./JournalNav";
 import JournalList from "./JournalList";
 import NewJournal from "./NewJournal";
 import ShowJournal from "./showJournal"; // Ensure the component name is consistent
+import FileUpload from "./FileUpload";
 
 function Main() {
   const [journals, setJournals] = useState([]); // State to hold journal entries

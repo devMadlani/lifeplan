@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaCloudUploadAlt } from "react-icons/fa";
+// import { FaCloudUploadAlt } from "react-icons/fa";
 
 // Function to open IndexedDB
 const openIndexedDB = () => {
@@ -26,17 +26,25 @@ const FileUpload = () => {
   const [fileData, setFileData] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // State for progress
+  const [currentFile, setCurrentFile] = useState(null); // State to store the current file being uploaded
 
-  useEffect(() => {
-    // Load existing files from IndexedDB
-    const loadFiles = async () => {
-      const db = await openIndexedDB();
-      const transaction = db.transaction("files", "readonly");
-      const store = transaction.objectStore("files");
-      const allFiles = await store.getAll();
+  const loadFiles = async () => {
+    const db = await openIndexedDB();
+    const transaction = db.transaction("files", "readonly");
+    const store = transaction.objectStore("files");
+    const request = await store.getAll();
+    request.onsuccess = (event) => {
+      const allFiles = event.target.result;
       setFileData(allFiles);
     };
 
+    request.onerror = (event) => {
+      console.error("Error retrieving files:", event.target.error);
+    };
+  };
+
+  useEffect(() => {
     loadFiles();
   }, []);
 
@@ -50,6 +58,7 @@ const FileUpload = () => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (validateFile(file)) {
+        setCurrentFile(file); // Set the current file being uploaded
         uploadFile(file);
       }
     }
@@ -57,13 +66,7 @@ const FileUpload = () => {
 
   const validateFile = (file) => {
     if (file.size > 5 * 1024 * 1024) {
-      // 5 MB limit
       setErrorMessage("File size exceeds 5 MB");
-      return false;
-    }
-    if (!file.type.startsWith("image/")) {
-      // Only allow image files
-      setErrorMessage("Only image files are allowed");
       return false;
     }
     setErrorMessage("");
@@ -91,14 +94,26 @@ const FileUpload = () => {
 
       request.onsuccess = () => {
         console.log("File stored successfully:", fileRecord);
-        setUploading(false);
-        loadFiles(); // Refresh the file list after upload
+        setUploadProgress(100); // Set progress to 100% once upload is done
+        setTimeout(() => {
+          setUploading(false);
+          setUploadProgress(0); // Reset progress
+          loadFiles(); // Refresh the file list after upload
+          setCurrentFile(null); // Clear the current file
+        }, 1000);
       };
 
       request.onerror = (event) => {
         console.error("Error storing file:", event.target.error);
         setUploading(false);
       };
+    };
+
+    reader.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const progress = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(progress); // Update progress
+      }
     };
 
     reader.readAsArrayBuffer(file);
@@ -122,16 +137,13 @@ const FileUpload = () => {
 
   return (
     <div className="max-w-lg mx-auto p-4 border rounded-lg shadow-lg bg-white">
-      <h2 className="text-lg font-semibold text-center mb-4">
-        Upload Your Files
-      </h2>
+      <h2 className="text-lg font-semibold mb-4">Files</h2>
       {errorMessage && <p className="text-red-600 text-sm">{errorMessage}</p>}
       <div
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         className="border-2 border-dashed border-gray-300 p-6 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition"
       >
-        <FaCloudUploadAlt className="text-3xl text-gray-400 mb-2" />
         <p className="text-gray-600">
           Drag and drop files here or{" "}
           <span
@@ -150,7 +162,24 @@ const FileUpload = () => {
         />
       </div>
 
-      {uploading && <p className="text-blue-600 text-sm mt-2">Uploading...</p>}
+      {uploading && currentFile && (
+        <div className="mt-4">
+          <div className="flex justify-between items-start">
+            <h2 className="text-sm font-semibold text-gray-800">
+              {currentFile.name}
+            </h2>
+            <span className="text-xs text-gray-600">
+              {uploadProgress}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div
+              className="bg-purple-500 h-full rounded-full transition-all"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       <h3 className="text-md font-semibold mt-4">Uploaded Files:</h3>
       <ul className="mt-2">
