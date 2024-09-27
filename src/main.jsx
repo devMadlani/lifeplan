@@ -6,7 +6,7 @@ import FileUpload from './components/FileUpload.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <FileUpload />
-    {/* <App /> */}
+    {/* <FileUpload /> */}
+    <App />
   </StrictMode>,
 )

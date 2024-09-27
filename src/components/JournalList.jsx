@@ -1,4 +1,3 @@
-// JournalList.js
 import React, { useEffect, useState } from "react";
 import { useJournal } from "../context/JournalContext"; // Import the context
 
@@ -17,6 +16,7 @@ function JournalList({ onAddClick }) {
     setSearchTerm(""); // Clear search term when closing
   };
 
+  // Fetch entries from IndexedDB and sort by the order field
   const fetchEntries = async () => {
     const dbRequest = indexedDB.open("myJournal", 1);
 
@@ -27,7 +27,12 @@ function JournalList({ onAddClick }) {
       const allEntriesRequest = objectStore.getAll();
 
       allEntriesRequest.onsuccess = (event) => {
-        setEntries(event.target.result);
+        const fetchedEntries = event.target.result;
+
+        // Sort entries based on the 'order' field
+        const sortedEntries = fetchedEntries.sort((a, b) => a.order - b.order);
+
+        setEntries(sortedEntries);
       };
     };
 
@@ -37,12 +42,51 @@ function JournalList({ onAddClick }) {
   };
 
   useEffect(() => {
-    setInterval(() => {
-      
-      fetchEntries(); // Initial fetch when component mounts
-    }, 100);
+    fetchEntries(); // Fetch entries when the component mounts
   }, []);
-  
+
+  // DND logic
+  const handleDragStart = (e, entryIndex) => {
+    e.dataTransfer.setData("text/plain", entryIndex); // Store the index of the dragged item
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Allow dropping by preventing default behavior
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    const draggedIndex = e.dataTransfer.getData("text/plain");
+    const draggedEntry = entries[draggedIndex];
+    const updatedEntries = [...entries];
+    updatedEntries.splice(draggedIndex, 1);
+    updatedEntries.splice(dropIndex, 0, draggedEntry);
+    setEntries(updatedEntries);
+
+    const dbRequest = indexedDB.open("myJournal", 1);
+    dbRequest.onsuccess = (event) => {
+      const db = event.target.result;
+      const transaction = db.transaction(["allJournal"], "readwrite");
+      const objectStore = transaction.objectStore("allJournal");
+
+      // Update each entry's order field based on the new positions
+      updatedEntries.forEach((entry,    ) => {
+        const updatedEntry = { ...entry, order: index }; // Update the 'order' field
+
+        // Put the updated entry back into the store (IndexedDB)
+        const updateRequest = objectStore.put(updatedEntry);
+
+        updateRequest.onerror = (event) => {
+          console.error("Error updating entry order:", event.target.error);
+        };
+      });
+    };
+
+    dbRequest.onerror = (event) => {
+      console.error("Database error:", event.target.error);
+    };
+  };
+
   // Filter entries based on the search term
   const filteredEntries = entries.filter((entry) =>
     entry.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -94,7 +138,7 @@ function JournalList({ onAddClick }) {
                   <img
                     src="../images/icons/close.png"
                     className="absolute object-contain w-2 right-2 top-[10px]"
-                    alt=""
+                    alt="Close"
                   />
                 </button>
               </div>
@@ -115,12 +159,16 @@ function JournalList({ onAddClick }) {
           <h1 className="text-sm text-[rgba(152,162,179,1)] font-medium">
             Today
           </h1>
-          {filteredEntries.length > 0 ? ( // Use filtered entries here
-            filteredEntries.map((entry) => (
+          {filteredEntries.length > 0 ? (
+            filteredEntries.map((entry, index) => (
               <div
                 key={entry.id}
+                draggable
                 className="flex flex-col justify-center gap-3 w-[208px] border-b py-[6px] mb-2 cursor-pointer"
                 onClick={() => setSelectedEntry(entry)} // Set the selected entry
+                onDragStart={(e) => handleDragStart(e, index)} // Start dragging with the index
+                onDragOver={handleDragOver} // Allow dragging over
+                onDrop={(e) => handleDrop(e, index)} // Drop logic
               >
                 <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold">
                   {entry.title}

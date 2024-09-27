@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 
 const TagsInput = ({ tags, setTags }) => {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState([]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && input.trim() !== "") {

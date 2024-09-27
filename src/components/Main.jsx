@@ -10,7 +10,7 @@ function Main() {
   const [journals, setJournals] = useState([]); // State to hold journal entries
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [isNewJournalVisible, setIsNewJournalVisible] = useState(false);
-
+  const [newEntry,setNewEntry] = useState(null)
   const handleAddJournalClick = () => {
     setIsNewJournalVisible(true);
   };
@@ -19,6 +19,7 @@ function Main() {
     setJournals((prevJournals) => [...prevJournals, newEntry]); // Add new entry to journals
     setSelectedEntry(newEntry); // Set the newly added entry as the selected entry
     setIsNewJournalVisible(false); // Hide NewJournal and show ShowJournal after saving
+    setNewEntry(newEntry)
   };
 
   return (
@@ -36,7 +37,7 @@ function Main() {
           {isNewJournalVisible ? (
             <NewJournal onSave={handleSaveJournal} />
           ) : (
-            <ShowJournal entry={selectedEntry} journals={journals} />
+            <ShowJournal entry={selectedEntry} journals={journals} newEntry={newEntry} />
           )}
         </div>
       </div>
