@@ -42,7 +42,10 @@ function JournalList({ onAddClick }) {
   };
 
   useEffect(() => {
-    fetchEntries(); // Fetch entries when the component mounts
+    setInterval(() => {
+
+      fetchEntries(); // Fetch entries when the component mounts
+    }, 100);
   }, []);
 
   // DND logic
@@ -70,7 +73,7 @@ function JournalList({ onAddClick }) {
       const objectStore = transaction.objectStore("allJournal");
 
       // Update each entry's order field based on the new positions
-      updatedEntries.forEach((entry,    ) => {
+      updatedEntries.forEach((entry, index) => {
         const updatedEntry = { ...entry, order: index }; // Update the 'order' field
 
         // Put the updated entry back into the store (IndexedDB)
@@ -164,21 +167,18 @@ function JournalList({ onAddClick }) {
               <div
                 key={entry.id}
                 draggable
-                className="flex flex-col justify-center gap-3 w-[208px] border-b py-[6px] mb-2 cursor-pointer"
+                className="flex flex-col justify-center gap-3  w-full border-b py-[6px] mb-2 cursor-pointer hover:bg-[#f0f0f0] rounded pl-2"
                 onClick={() => setSelectedEntry(entry)} // Set the selected entry
                 onDragStart={(e) => handleDragStart(e, index)} // Start dragging with the index
                 onDragOver={handleDragOver} // Allow dragging over
                 onDrop={(e) => handleDrop(e, index)} // Drop logic
               >
-                <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold">
+                <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold truncate">
                   {entry.title}
                 </h1>
                 <div className="flex gap-2">
                   <h1 className="text-xs text-[rgba(71,84,103,1)] font-medium">
                     {entry.date}
-                  </h1>
-                  <h1 className="text-xs text-[rgba(152,162,179,1)] font-medium">
-                    {entry.sometext}
                   </h1>
                 </div>
               </div>

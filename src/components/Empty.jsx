@@ -1,9 +1,13 @@
-import React from 'react'
+import React from "react";
 
-function Empty(props) {
+function Empty() {
   return (
-    <h1 className='text-xl font-medium text-black'>You are in {props.name} ckick on Journal  </h1>
-  )
+    <div className="ml-96 mt-48">
+      <h1 className="text-xl font-medium text-black">
+        You are in Empty page click on Journal
+      </h1>
+    </div>
+  );
 }
 
-export default Empty
+export default Empty;

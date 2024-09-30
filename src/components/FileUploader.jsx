@@ -12,8 +12,13 @@ function FileUploader({ files, setFiles }) {
         validFiles.push(file); // Collect valid files
       }
     }
-    setFiles((prevFiles) => [...prevFiles, ...validFiles]); // Add new files to existing
-    validFiles.forEach((file) => simulateFileUpload(file)); // Simulate upload for valid files
+
+    // Prevent duplicates by checking the existing file names
+    const existingFileNames = new Set(files.map((f) => f.name));
+    const newFiles = validFiles.filter((f) => !existingFileNames.has(f.name));
+
+    setFiles((prevFiles) => [...prevFiles, ...newFiles]); // Add new files to existing
+    newFiles.forEach((file) => simulateFileUpload(file)); // Simulate upload for valid files
   };
 
   const validateFile = (file) => {
@@ -94,7 +99,7 @@ function FileUploader({ files, setFiles }) {
       </div>
 
       <div className="flex flex-col mt-2">
-        {files.map((file) => (
+        {files?.map((file) => (
           <div
             key={file.name}
             className="flex justify-between items-center p-2 border-b border-gray-200"

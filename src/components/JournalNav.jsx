@@ -11,7 +11,7 @@ function JournalNav() {
         />
         <input
           type="text"
-          className="w-[576px] px-[44px] py-[13px] rounded-xl border border-[rgba(234,236,240,1)]"
+          className="w-[576px] px-[44px] py-[13px] rounded-xl border border-[rgba(234,236,240,1)] focus:outline-purple-600"
           placeholder="Search"
         />
         <img

@@ -55,3 +55,20 @@ export const saveJournal = (db, journalData) => {
     };
   });
 };
+export const deleteJournalEntryFromIndexedDB = (id) => {
+  return new Promise((resolve, reject) => {
+    openDatabase().then((db) => {
+      const transaction = db.transaction(STORE_NAME, "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.delete(id); // Deletes journal entry by ID
+
+      request.onsuccess = () => {
+        resolve(); // Success callback when deletion is completed
+      };
+
+      request.onerror = () => {
+        reject(request.error); // Error callback in case deletion fails
+      };
+    });
+  });
+};

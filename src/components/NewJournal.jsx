@@ -7,13 +7,13 @@ import AudioRecorder from "./AudioRecorder";
 import TagsInput from "./TagsInput";
 import FileUploader from "./FileUploader";
 
-function NewJournal({ onSave }) {
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [videoUrl, setVideoUrl] = useState(null);
-  const [file, setFile] = useState([]);
-  const [title, setTitle] = useState("");
-  const [value, setValue] = useState("");
-  const [tags, setTags] = useState([]);
+function NewJournal({ onSave, existingData }) {
+  const [audioUrl, setAudioUrl] = useState(existingData?.audioUrl || null);
+  const [videoUrl, setVideoUrl] = useState(existingData?.videoUrl || null);
+  const [files, setFiles] = useState(existingData?.files || []);
+  const [title, setTitle] = useState(existingData?.title || "");
+  const [value, setValue] = useState(existingData?.description || "");
+  const [tags, setTags] = useState(existingData?.tags || []);
   const [journals, setJournals] = useState([]);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ function NewJournal({ onSave }) {
     setTags([]);
     setAudioUrl(null);
     setVideoUrl(null);
-    setFile(null);
+    setFiles([]);
   };
 
   const handleSave = async () => {
@@ -48,19 +48,31 @@ function NewJournal({ onSave }) {
       tags,
       audioUrl,
       videoUrl,
-      files: file // Assuming `files` is an array of selected files
-        ? await Promise.all(
-            file.map(async (file) => ({
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              data: await file.arrayBuffer(), // Convert file to ArrayBuffer
-            }))
-          )
-        : [],
+      files:
+        files.length > 0
+          ? await Promise.all(
+              files.map(async (file) => ({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                data: await file.arrayBuffer(), // Convert file to ArrayBuffer
+              }))
+            )
+          : [],
+      id: existingData?.id || new Date().toISOString(),
     };
+
     try {
-      await saveJournal(db, journalData);
+      if (existingData) {
+        await db
+          .transaction("allJournal", "readwrite")
+          .objectStore("allJournal")
+          .put(journalData);
+      } else {
+        // Save new journal
+        await saveJournal(db, journalData);
+      }
+
       const allJournals = await fetchJournals(db);
       setJournals(allJournals);
       resetForm();
@@ -69,6 +81,7 @@ function NewJournal({ onSave }) {
       console.error("Failed to save journal:", error);
     }
   };
+
   const modules = {
     toolbar: [
       [{ header: "1" }, { header: "2" }, { font: [] }],
@@ -77,27 +90,17 @@ function NewJournal({ onSave }) {
       ["image"],
     ],
   };
+
   return (
     <div>
       <div className="flex flex-col gap-4 h-[758px] flex-grow">
         <div className="bg-[rgba(252,252,253,1)] flex justify-between">
           <h1 className="text-[20px] text-[rgba(16,24,40,1)] my-2 mx-4">
-            New Journal
+            {title || "New Journal"}
           </h1>
-          <div className="my-auto flex gap-1 mx-5 ">
-            <button className="py-1 px-2 flex items-center gap-1 border  focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)]   rounded-xl">
-              <img src="../images/icons/share.png" alt="" />
-              <span className="text-xs  text-[rgba(102,112,133,1)] ml-1">
-                Share
-              </span>
-            </button>
-            <button className="py-1 px-2 flex items-center gap-1">
-              <img src="../images/icons/dot.png" alt="" />
-            </button>
-          </div>
         </div>
         <h1 className="text-center text-xs text-[rgba(152,162,179,1)]">
-          {Date(Date.now())}
+          {new Date().toLocaleString()}
         </h1>
         <div className="min-w-[320px] max-w-[826px] flex justify-center">
           <form className="flex flex-wrap flex-col items-center gap-2">
@@ -115,31 +118,30 @@ function NewJournal({ onSave }) {
               />
             </div>
             <div>
-              <h1 htmlFor="des" className="text-[14px] mb-1">
+              <h1 htmlFor="description" className="text-[14px] mb-1">
                 Description
               </h1>
-              <div>
-                <ReactQuill
-                  value={value}
-                  onChange={setValue}
-                  modules={modules}
-                  formats={["header", "bold", "italic", "underline", "image"]} // Specify allowed formats
-                  className="text-[16px] min-w-[300px] sm:w-[520px] lg:w-[766px]"
-                />
-              </div>
+              <ReactQuill
+                value={value}
+                onChange={setValue}
+                modules={modules}
+                formats={["header", "bold", "italic", "underline", "image"]}
+                className="text-[16px] min-w-[300px] sm:w-[520px] lg:w-[766px]"
+              />
             </div>
             <div>
               <TagsInput tags={tags} setTags={setTags} />
             </div>
             <div className="flex flex-wrap gap-7 justify-center">
-              <AudioRecorder />
-              <VideoRecorder />
+              <AudioRecorder setAudioUrl={setAudioUrl} />
+              <VideoRecorder setVideoUrl={setVideoUrl} />
             </div>
-            <FileUploader files={file} setFiles={setFile} />
-            <div className="flex gap-1 pt-0 border-t border-[rgba(234,236,240,1)] min-w-[320px] w-[826px] justify-end  ">
+            <FileUploader files={files} setFiles={setFiles} />
+            <div className="flex gap-1 pt-0 border-t border-[rgba(234,236,240,1)] min-w-[320px] w-[826px] justify-end">
               <button
                 type="button"
-                className="mt-3  rounded-xl border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)] border-[rgba(208,213,221,1)] px-4 py-[10px] text-[14px] text-[rgba(52, 64, 84, 1)] font-semibold"
+                onClick={resetForm}
+                className="mt-3 rounded-xl border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)] border-[rgba(208,213,221,1)] px-4 py-[10px] text-[14px] text-[rgba(52, 64, 84, 1)] font-semibold"
               >
                 Cancel
                 <img
