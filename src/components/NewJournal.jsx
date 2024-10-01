@@ -125,7 +125,15 @@ function NewJournal({ onSave, existingData }) {
                 value={value}
                 onChange={setValue}
                 modules={modules}
-                formats={["header", "bold", "italic", "underline", "image"]}
+                formats={[
+                  "header",
+                  "font",
+                  "bold",
+                  "italic",
+                  "underline",
+                  "image",
+                  "list",
+                ]}
                 className="text-[16px] min-w-[300px] sm:w-[520px] lg:w-[766px]"
               />
             </div>
