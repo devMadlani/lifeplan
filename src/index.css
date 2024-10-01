@@ -7,8 +7,57 @@
    box-shadow: 0 0 20px rgba(127, 86, 217, 0.7);
 }
 
-
-.ql-editor img {
+.ql-editor img{
+   width: 300px;
+  height: auto; 
+}
+.ql img {
   width: 300px;
   height: auto; /* Maintain aspect ratio */
 }
+/* quillStyles.css */
+.ql h1 {
+  @apply text-2xl font-bold my-2; /* Heading 1 */
+}
+
+.ql h2 {
+  @apply text-xl font-bold my-2; /* Heading 2 */
+}
+
+.ql h3 {
+  @apply text-lg font-semibold my-2; /* Heading 3 */
+}
+
+.ql p {
+  @apply my-2; /* Paragraph */
+}
+
+.ql ul {
+  @apply list-disc pl-5; /* Unordered list */
+}
+
+.ql ol {
+  @apply list-decimal pl-5; /* Ordered list */
+}
+
+.ql li {
+  @apply my-1; /* List item */
+}
+
+.ql strong {
+  @apply font-bold; /* Bold text */
+}
+
+.ql em {
+  @apply italic; /* Italic text */
+}
+
+.ql u {
+  @apply underline; /* Underlined text */
+}
+
+.ql img {
+  @apply max-w-full h-auto; /* Responsive images */
+}
+
+  

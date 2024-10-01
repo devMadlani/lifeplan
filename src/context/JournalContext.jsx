@@ -29,7 +29,6 @@ export const JournalProvider = ({ children }) => {
         journals,
         setJournals,
         deleteJournal,
-        setJournals,
       }}
     >
       {children}

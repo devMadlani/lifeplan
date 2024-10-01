@@ -2,20 +2,22 @@ import React, { useState, useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
 import { useJournal } from "../context/JournalContext"; // Adjust the path as necessary
 import NewJournal from "./NewJournal";
-import { fetchJournals } from "../indexedDB/OpenDB";
+import { openDB } from "idb";
 
 function ShowJournal({ newEntry, onEdit }) {
-  const { selectedEntry, deleteJournal } = useJournal(); // Use the context to get the selected entry
+  const { selectedEntry, deleteJournal } = useJournal();
   const [date, setDate] = useState("");
   const [tag, setTag] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [audioUrl, setAudioUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const videoRef = useRef(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -27,49 +29,70 @@ function ShowJournal({ newEntry, onEdit }) {
     setShowOptions(!showOptions);
   };
 
+  const fetchEntryById = async (id) => {
+    const db = await openDB("myJournal", 1);
+    return await db.get("allJournals", id);
+  };
+
   useEffect(() => {
     const fetchFilesAndTags = async () => {
-      let entry = selectedEntry || newEntry;
+      setLoading(true);
+      try {
+        let entry = selectedEntry || newEntry;
 
-      if (entry) {
-        setTitle(entry.title);
-        setDate(entry.date);
-        setAudioUrl(entry.audioUrl);
-        setVideoUrl(entry.videoUrl);
-        setTag(entry.tags || []); // Set tags from the entry
+        if (entry) {
+          setTitle(entry.title);
+          setDate(entry.date);
+          setAudioUrl(entry.audioUrl);
+          setVideoUrl(entry.videoUrl);
+          setTag(entry.tags || []);
 
-        // Fetch and process files
-        if (entry.files && entry.files.length > 0) {
-          const filePromises = entry.files.map((file) => {
-            const blob = new Blob([file.data], { type: file.type });
-            const fileBlobUrl = URL.createObjectURL(blob);
-            return {
-              name: file.name,
-              size: file.size,
-              url: fileBlobUrl,
-            };
+          if (entry.files && entry.files.length > 0) {
+            const filePromises = entry.files.map((file) => {
+              const blob = new Blob([file.data], { type: file.type });
+              const fileBlobUrl = URL.createObjectURL(blob);
+              return {
+                name: file.name,
+                size: file.size,
+                url: fileBlobUrl,
+              };
+            });
+
+            const filesArray = await Promise.all(filePromises);
+            setFiles(filesArray);
+          } else {
+            setFiles([]);
+          }
+
+          // Sanitize and set the description
+          const sanitizedHtml = DOMPurify.sanitize(entry.description, {
+            ADD_TAGS: [
+              "img",
+              "h1",
+              "h2",
+              "h3",
+              "h4",
+              "h5",
+              "h6",
+              "ul",
+              "ol",
+              "li",
+            ],
+            ADD_ATTR: ["src","alt", "style", "class"],
           });
 
-          const filesArray = await Promise.all(filePromises);
-          setFile(filesArray);
-        } else {
-          setFile([]); // No files found
+          setDescription(sanitizedHtml); // Store the sanitized HTML directly
         }
-
-        // Sanitize and set the description
-        const sanitizedHtml = DOMPurify.sanitize(entry.description);
-        const textContent = new DOMParser().parseFromString(
-          sanitizedHtml,
-          "text/html"
-        ).body.innerText;
-        setDescription(textContent);
+      } catch (error) {
+        console.error("Error fetching journal entry:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchFilesAndTags();
   }, [selectedEntry, newEntry]);
 
-  // Fullscreen toggle functionality
   const toggleFullscreen = () => {
     if (videoRef.current) {
       if (!isFullscreen) {
@@ -83,11 +106,28 @@ function ShowJournal({ newEntry, onEdit }) {
 
   const handleDelete = () => {
     if (selectedEntry) {
-      deleteJournal(selectedEntry.id); // Call the deleteJournal function from context
+      deleteJournal(selectedEntry.id);
     } else if (newEntry) {
       deleteJournal(newEntry.id);
     }
   };
+
+  const handleImageDelete = (imageUrl) => {
+    const updatedDescription = description.replace(
+      `<img src="${imageUrl}" style="width: 300px;" alt="" />`,
+      ""
+    );
+    setDescription(updatedDescription);
+    setImages(images.filter((img) => img !== imageUrl));
+  };
+
+  if (loading) {
+    return (
+      <h1 className="text-center text-lg font-bold mx-auto mt-12">
+        Loading...
+      </h1>
+    );
+  }
 
   if (!selectedEntry && !newEntry) {
     return (
@@ -104,7 +144,7 @@ function ShowJournal({ newEntry, onEdit }) {
           <NewJournal
             onSave={(data) => {
               handleSave(data);
-              setIsEditing(false); // Exit editing mode after saving
+              setIsEditing(false);
             }}
             existingData={{
               title,
@@ -112,7 +152,7 @@ function ShowJournal({ newEntry, onEdit }) {
               tags: tag,
               audioUrl,
               videoUrl,
-              files: file,
+              files,
             }}
           />
         ) : (
@@ -130,7 +170,7 @@ function ShowJournal({ newEntry, onEdit }) {
                 </button>
                 <div className="relative my-auto">
                   <button
-                    className="py-1 px-2 flex items-center  gap-1  "
+                    className="py-1 px-2 flex items-center gap-1"
                     onClick={toggleOptions}
                   >
                     <img src="../images/icons/dot.png" alt="" />
@@ -139,7 +179,7 @@ function ShowJournal({ newEntry, onEdit }) {
                     <div className="absolute mt-2 right-1 top-7 py-2 w-44 bg-white rounded-lg shadow-lg">
                       <button
                         onClick={() => onEdit(selectedEntry)}
-                        className="flex py-2 text-gray-800 hover:bg-[rgba(249,250,251,1)] ml-2  group"
+                        className="flex py-2 text-gray-800 hover:bg-[rgba(249,250,251,1)] ml-2 group"
                       >
                         <img
                           src="../images/icons/edit.png"
@@ -158,7 +198,7 @@ function ShowJournal({ newEntry, onEdit }) {
 
                       <button
                         onClick={handleDelete}
-                        className="py-2 text-gray-800 hover:bg-[rgba(249,250,251,1)] flex mx-auto group "
+                        className="py-2 text-gray-800 hover:bg-[rgba(249,250,251,1)] flex mx-auto group"
                       >
                         <img
                           src="../images/icons/trash.png"
@@ -201,10 +241,21 @@ function ShowJournal({ newEntry, onEdit }) {
                 )}
               </div>
 
-              <div className="desc max-w-[700px] my-4 text-left">
-                {description}
+              <div className="ql max-w-[700px] my-4 text-left">
+                <div dangerouslySetInnerHTML={{ __html: description }} />
+                {images.map((image, index) => (
+                  <div key={index} className="relative inline-block">
+                    <img src={image} style={{ width: "300px" }} alt="" />
+                    <button
+                      onClick={() => handleImageDelete(image)}
+                      className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full p-1"
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
               </div>
-
+              {/* Audio and Video Section */}
               <div className="audio">
                 <div className="mt-4">
                   <h2 className="text-sm text-gray-600">Recorded Audio:</h2>
@@ -261,27 +312,59 @@ function ShowJournal({ newEntry, onEdit }) {
                   </button>
                 </div>
               </div>
+              {audioUrl && (
+                <audio controls className="w-full">
+                  <source src={audioUrl} type="audio/mp3" />
+                  Your browser does not support the audio tag.
+                </audio>
+              )}
 
-              <div className="files">
-                <h2 className="text-sm text-gray-600">Uploaded Files:</h2>
-                <ul className="mt-2">
-                  {file && file.length > 0 ? (
-                    file.map((fileItem, index) => (
-                      <li key={index} className="mt-1">
+              {videoUrl && (
+                <div className="relative">
+                  <video ref={videoRef} controls className="w-full rounded-md">
+                    <source src={videoUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  <button
+                    onClick={toggleFullscreen}
+                    className="absolute top-2 right-2 bg-black text-white px-2 py-1 rounded"
+                  >
+                    {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                  </button>
+                </div>
+              )}
+              <div className="files mt-4">
+                {files && files.length > 0 ? (
+                  files.map((fileItem, index) => (
+                    <div key={index} className="flex w-full mb-12">
+                      <div className="flex items-center mt-2 mr-2">
+                        <div className="border rounded-lg w-[30px] h-[30px] flex justify-center items-center mr-2">
+                          <img
+                            src="../images/icons/file.png"
+                            className="object-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <h2 className="text-[14px] font-semibold text-gray-700">
+                          {fileItem.name}
+                        </h2>
+                        <h2 className="text-[14px] text-gray-600">
+                          {Math.round(fileItem.size / 1024)} KB
+                        </h2>
                         <a
-                          href={fileItem.url} // Use the blob URL for file download
-                          className="text-blue-500 underline"
-                          download={fileItem.name} // Enable file download
+                          href={fileItem.url}
+                          download={fileItem.name} // Add download attribute
+                          className="text-[12px] text-blue-400 underline my-auto"
                         >
-                          {fileItem.name} ({(fileItem.size / 1024).toFixed(2)}{" "}
-                          KB)
+                          Download
                         </a>
-                      </li>
-                    ))
-                  ) : (
-                    <li>No files available</li>
-                  )}
-                </ul>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div>No files uploaded</div>
+                )}
               </div>
             </div>
           </>
