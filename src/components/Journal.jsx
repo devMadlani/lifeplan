@@ -39,13 +39,13 @@ function Journal() {
     <div className="flex flex-col">
       <JournalNav />
       <div className="flex">
-        <JournalList
+        {/* <JournalList
           onAddClick={handleAddJournalClick}
           setSelectedEntry={setSelectedEntry}
           onEditClick={handleEditJournal} // Pass the edit function
           journals={journals} // Make sure to pass journals to JournalList if needed
-        />
-        {isNewJournalVisible ? (
+        /> */}
+        {true ? (
           <NewJournal onSave={handleSaveJournal} existingData={selectedEntry} />
         ) : (
           <ShowJournal

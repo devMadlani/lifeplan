@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
 import { useJournal } from "../context/JournalContext"; // Adjust the path as necessary
 import NewJournal from "./NewJournal";
-import { openDB } from "idb";
+
 
 function ShowJournal({ newEntry, onEdit }) {
   const { selectedEntry, deleteJournal } = useJournal();
@@ -21,19 +21,13 @@ function ShowJournal({ newEntry, onEdit }) {
   const [showOptions, setShowOptions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+
 
   const toggleOptions = () => {
     setShowOptions(!showOptions);
   };
 
-  const fetchEntryById = async (id) => {
-    const db = await openDB("myJournal", 1);
-    return await db.get("allJournals", id);
-  };
-
+ 
   useEffect(() => {
     const fetchFilesAndTags = async () => {
       setLoading(true);
