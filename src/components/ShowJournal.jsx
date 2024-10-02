@@ -315,10 +315,10 @@ function ShowJournal({ newEntry, onEdit }) {
 
               {videoUrl && (
                 <div className="relative">
-                  <video ref={videoRef} controls className="w-full rounded-md">
-                    {/* <source src={videoUrl} type="video/mp4" /> */}
+                 
+                    <source src={videoUrl} type="video/mp4" />
                     Your browser does not support the video tag.
-                  </video>
+           
                   <button
                     onClick={toggleFullscreen}
                     className="absolute top-2 right-2 bg-black text-white px-2 py-1 rounded"
