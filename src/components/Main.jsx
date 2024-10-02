@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Journal from "./journal";
 import Empty from "./Empty";
+import { openDatabase } from "../indexedDB/OpenDB";
 
 function Main() {
-  
-
+  useEffect(()=>{
+    openDatabase()
+  },[])
   return (
     <Router>
       <div className="flex">

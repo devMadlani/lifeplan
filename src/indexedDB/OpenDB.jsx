@@ -9,6 +9,7 @@ export const openDatabase = (version = 1) => {
 
     dbRequest.onupgradeneeded = (event) => {
       const db = event.target.result;
+      console.log(db)
       db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
     };
 
