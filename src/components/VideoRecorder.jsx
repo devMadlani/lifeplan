@@ -1,52 +1,77 @@
-// VideoRecorder.js
 import React, { useState, useRef } from "react";
 
 const VideoRecorder = ({ onVideoUrlChange }) => {
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const videoRef = useRef(null);
   const mediaRecorderVideoRef = useRef(null);
   const videoChunksRef = useRef([]);
-  const [videoUrl, setVideoUrl] = useState(null);
 
   const startRecordingVideo = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
-    videoRef.current.srcObject = stream;
-
-    mediaRecorderVideoRef.current = new MediaRecorder(stream);
-
-    mediaRecorderVideoRef.current.ondataavailable = (event) => {
-      videoChunksRef.current.push(event.data);
-    };
-
-    mediaRecorderVideoRef.current.onstop = () => {
-      const videoBlob = new Blob(videoChunksRef.current, {
-        type: "video/webm",
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
       });
-      const url = URL.createObjectURL(videoBlob);
-      setVideoUrl(url);
-      onVideoUrlChange(url); // Pass the video URL to the parent
-      videoChunksRef.current = [];
-    };
+      videoRef.current.srcObject = stream;
 
-    mediaRecorderVideoRef.current.start();
-    setIsRecordingVideo(true);
+      mediaRecorderVideoRef.current = new MediaRecorder(stream);
+
+      mediaRecorderVideoRef.current.ondataavailable = (event) => {
+        videoChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderVideoRef.current.onstop = () => {
+        const videoBlob = new Blob(videoChunksRef.current, {
+          type: "video/webm",
+        });
+        const url = URL.createObjectURL(videoBlob);
+        setVideoUrl(url);
+        onVideoUrlChange(url); // Pass the video URL to the parent
+        videoChunksRef.current = [];
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorderVideoRef.current.start();
+      setIsRecordingVideo(true);
+      setErrorMessage(null); // Clear any previous errors
+    } catch (error) {
+      handleError(error);
+    }
   };
 
   const stopRecordingVideo = () => {
-    mediaRecorderVideoRef.current.stop();
-    setIsRecordingVideo(false);
+    if (mediaRecorderVideoRef.current) {
+      mediaRecorderVideoRef.current.stop();
+      setIsRecordingVideo(false);
+    } else {
+      setErrorMessage("Recording has not started.");
+    }
   };
 
   const saveVideoFile = () => {
+    if (!videoUrl) return;
     const link = document.createElement("a");
     link.href = videoUrl;
     link.download = "recorded-video.webm";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleError = (error) => {
+    if (error.name === "NotAllowedError") {
+      setErrorMessage(
+        "Permission to access the camera and microphone is denied."
+      );
+    } else if (error.name === "NotFoundError") {
+      setErrorMessage("No camera or microphone was found.");
+    } else {
+      setErrorMessage("An error occurred while accessing your devices.");
+    }
+    setIsRecordingVideo(false);
+    console.error("Error accessing media devices:", error);
   };
 
   return (
@@ -74,6 +99,13 @@ const VideoRecorder = ({ onVideoUrlChange }) => {
           to {isRecordingVideo ? "stop recording" : "start recording..."}
         </h1>
       </div>
+
+      {/* Display any error messages */}
+      {errorMessage && (
+        <div className="mt-2 text-red-500 text-sm">
+          <strong></strong> {errorMessage}
+        </div>
+      )}
 
       {/* Video Element to display the stream */}
       <video
