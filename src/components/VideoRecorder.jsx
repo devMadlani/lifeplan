@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { openDB } from "idb";
 
 const VideoRecorder = ({ onVideoUrlChange }) => {
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
@@ -7,6 +8,29 @@ const VideoRecorder = ({ onVideoUrlChange }) => {
   const videoRef = useRef(null);
   const mediaRecorderVideoRef = useRef(null);
   const videoChunksRef = useRef([]);
+
+  // IndexedDB setup
+  const dbPromise = openDB("video-recordings", 1, {
+    upgrade(db) {
+      db.createObjectStore("videoStore");
+    },
+  });
+
+  const saveToIndexedDB = async (videoBlob) => {
+    const db = await dbPromise;
+    await db.put("videoStore", videoBlob, "recordedVideo");
+  };
+
+  const loadFromIndexedDB = async () => {
+    const db = await dbPromise;
+    const storedVideoBlob = await db.get("videoStore", "recordedVideo");
+
+    if (storedVideoBlob) {
+      const url = URL.createObjectURL(storedVideoBlob);
+      setVideoUrl(url);
+      onVideoUrlChange(url); // Pass the video URL to the parent
+    }
+  };
 
   const startRecordingVideo = async () => {
     try {
@@ -29,6 +53,7 @@ const VideoRecorder = ({ onVideoUrlChange }) => {
         const url = URL.createObjectURL(videoBlob);
         setVideoUrl(url);
         onVideoUrlChange(url); // Pass the video URL to the parent
+        saveToIndexedDB(videoBlob); // Save video to IndexedDB
         videoChunksRef.current = [];
         stream.getTracks().forEach((track) => track.stop());
       };
@@ -73,6 +98,11 @@ const VideoRecorder = ({ onVideoUrlChange }) => {
     setIsRecordingVideo(false);
     console.error("Error accessing media devices:", error);
   };
+
+  // Load video from IndexedDB when the component mounts
+  useEffect(() => {
+    loadFromIndexedDB();
+  }, []);
 
   return (
     <div className="flex flex-col">
