@@ -141,8 +141,8 @@ function NewJournal({ onSave, existingData }) {
               <TagsInput tags={tags} setTags={setTags} />
             </div>
             <div className="flex flex-wrap gap-7 justify-center">
-              <AudioRecorder setAudioUrl={setAudioUrl} />
-              <VideoRecorder setVideoUrl={setVideoUrl} />
+              <AudioRecorder onAudioUrlChange={setAudioUrl} />
+              <VideoRecorder onVideoUrlChange={setVideoUrl} />
             </div>
             <FileUploader files={files} setFiles={setFiles} />
             <div className="flex gap-1 pt-0 border-t border-[rgba(234,236,240,1)] min-w-[320px] w-[826px] justify-end">
