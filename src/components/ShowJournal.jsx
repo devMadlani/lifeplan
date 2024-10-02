@@ -306,7 +306,7 @@ function ShowJournal({ newEntry, onEdit }) {
                   </button>
                 </div>
               </div>
-              {audioUrl && (
+              {/* {audioUrl && (
                 <audio controls className="w-full">
                   <source src={audioUrl} type="audio/mp3" />
                   Your browser does not support the audio tag.
@@ -326,7 +326,7 @@ function ShowJournal({ newEntry, onEdit }) {
                     {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                   </button>
                 </div>
-              )}
+              )} */}
               <div className="files mt-4">
                 {files && files.length > 0 ? (
                   files.map((fileItem, index) => (
