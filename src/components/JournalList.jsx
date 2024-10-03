@@ -42,11 +42,8 @@ function JournalList({ onAddClick }) {
   };
 
   useEffect(() => {
-    setInterval(() => {
-
-      fetchEntries(); // Fetch entries when the component mounts
-    }, 100);
-  }, []);
+    fetchEntries(); // Fetch entries when the component mounts
+  });
 
   // DND logic
   const handleDragStart = (e, entryIndex) => {
@@ -96,7 +93,7 @@ function JournalList({ onAddClick }) {
   );
 
   return (
-    <div className="flex flex-col w-[254px] gap-2 border-r ">
+    <div className="flex flex-col w-[254px] gap-2 ">
       <div>
         <div className="flex justify-between items-center mt-4 mx-3 ">
           {!showSearch && (

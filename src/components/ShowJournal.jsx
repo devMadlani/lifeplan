@@ -3,8 +3,7 @@ import DOMPurify from "dompurify";
 import { useJournal } from "../context/JournalContext"; // Adjust the path as necessary
 import NewJournal from "./NewJournal";
 
-
-function ShowJournal({ newEntry, onEdit }) {
+function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
   const { selectedEntry, deleteJournal } = useJournal();
   const [date, setDate] = useState("");
   const [tag, setTag] = useState([]);
@@ -21,13 +20,10 @@ function ShowJournal({ newEntry, onEdit }) {
   const [showOptions, setShowOptions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-
-
   const toggleOptions = () => {
     setShowOptions(!showOptions);
   };
 
- 
   useEffect(() => {
     const fetchFilesAndTags = async () => {
       setLoading(true);
@@ -72,7 +68,7 @@ function ShowJournal({ newEntry, onEdit }) {
               "ol",
               "li",
             ],
-            ADD_ATTR: ["src","alt", "style", "class"],
+            ADD_ATTR: ["src", "alt", "style", "class"],
           });
 
           setDescription(sanitizedHtml); // Store the sanitized HTML directly
@@ -115,6 +111,11 @@ function ShowJournal({ newEntry, onEdit }) {
     setImages(images.filter((img) => img !== imageUrl));
   };
 
+  // Ensure text wraps properly in the description
+  const descriptionStyle = {
+    wordBreak: "break-word", // Ensure long words break within the container
+  };
+
   if (loading) {
     return (
       <h1 className="text-center text-lg font-bold mx-auto mt-12">
@@ -132,8 +133,11 @@ function ShowJournal({ newEntry, onEdit }) {
   }
 
   return (
-    <div className="w-[326px] sm:w-[526px] md:w-[600px] lg:w-[851px] ">
-      <div className="flex flex-col gap-4 ">
+    <div className="w-[310px] sm:w-[526px] md:w-[600px] lg:w-[851px] p-4 sm:border-l">
+      <button className="mb-4 p-2 bg-gray-200 sm:hidden" onClick={onBackClick}>
+        &lt;Back
+      </button>
+      <div className="flex flex-col gap-4">
         {isEditing ? (
           <NewJournal
             onSave={(data) => {
@@ -217,7 +221,7 @@ function ShowJournal({ newEntry, onEdit }) {
               {selectedEntry?.date || newEntry?.date || "Date Not Available"}
             </h1>
 
-            <div className="flex flex-col px-8 gap-4 h-[758px] flex-grow min-w-[320px] max-w-[826px]">
+            <div className="flex flex-col px-8 gap-4 flex-grow max-w-[826px]">
               <div className="tags flex flex-wrap gap-2">
                 {tag.length > 0 ? (
                   tag.map((tagItem, index) => (
@@ -235,131 +239,59 @@ function ShowJournal({ newEntry, onEdit }) {
                 )}
               </div>
 
+              {/* Description Section */}
               <div className="ql max-w-[700px] my-4 text-left">
-                <div dangerouslySetInnerHTML={{ __html: description }} />
-                {images.map((image, index) => (
-                  <div key={index} className="relative inline-block">
-                    <img src={image} style={{ width: "300px" }} alt="" />
-                    <button
-                      onClick={() => handleImageDelete(image)}
-                      className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full p-1"
-                    >
-                      X
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {/* Audio and Video Section */}
-              <div className="audio">
-                <div className="mt-4">
-                  <h2 className="text-sm text-gray-600">Recorded Audio:</h2>
-                  <audio
-                    src={audioUrl} // Use the audio from your entry
-                    controls
-                    className="mt-2 max-w-[300px]"
-                  />
-                </div>
+                <div
+                  style={descriptionStyle} // Apply word-break for better responsiveness
+                  dangerouslySetInnerHTML={{ __html: description }}
+                ></div>
               </div>
 
-              <div className="video mt-4">
-                <h2 className="text-sm text-gray-600">Recorded Video:</h2>
-                <div className="video-container relative w-full max-w-[290px] lg:max-w-[366px]">
-                  <video
-                    ref={videoRef}
-                    src={videoUrl} // Use the video from your entry
-                    className="rounded-xl w-full"
-                    onClick={() => {
-                      if (isPlaying) {
-                        videoRef.current.pause(); // Pause video
-                        setIsPlaying(false); // Update state
-                      } else {
-                        videoRef.current.play(); // Play video
-                        setIsPlaying(true); // Update state
-                      }
-                    }}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                  />
-
-                  {!isPlaying && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent video click event
-                        videoRef.current.play(); // Play video
-                        setIsPlaying(true); // Update state
-                      }}
-                      className="absolute inset-0 m-auto flex items-center justify-center bg-black bg-opacity-50 rounded-lg"
-                    >
-                      <img
-                        src="../images/icons/play.png"
-                        alt="Play"
-                        className="h-10"
-                      />
-                    </button>
-                  )}
-
-                  <button
-                    onClick={toggleFullscreen}
-                    className="absolute right-2 bottom-2 bg-white p-1 rounded-md shadow-md"
-                  >
-                    <img src="../images/icons/fullscreen.png" alt="" />
-                  </button>
-                </div>
-              </div>
-              {/* {audioUrl && (
-                <audio controls className="w-full">
-                  <source src={audioUrl} type="audio/mp3" />
-                  Your browser does not support the audio tag.
-                </audio>
+              {/* Render audio */}
+              {audioUrl && (
+                <audio
+                  controls
+                  className="my-2"
+                  src={audioUrl}
+                  style={{ maxWidth: "700px" }}
+                />
               )}
 
+              {/* Render video */}
               {videoUrl && (
-                <div className="relative">
-                  <video controls className="w-full rounded-md">
-                    <source src={videoUrl} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
+                <div className="video max-w-[700px] mx-auto flex flex-col">
+                  <video
+                    ref={videoRef}
+                    src={videoUrl}
+                    className="mx-auto w-full h-auto"
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    controls
+                  ></video>
                   <button
+                    className="border px-2 py-1 my-4 rounded-md w-[150px] mx-auto text-[rgba(127,86,217,1)]"
                     onClick={toggleFullscreen}
-                    className="absolute top-2 right-2 bg-black text-white px-2 py-1 rounded"
                   >
-                    {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                    {isFullscreen ? "Exit Fullscreen" : "Go Fullscreen"}
                   </button>
                 </div>
-              )} */}
-              <div className="files mt-4">
-                {files && files.length > 0 ? (
-                  files.map((fileItem, index) => (
-                    <div key={index} className="flex w-full mb-12">
-                      <div className="flex items-center mt-2 mr-2">
-                        <div className="border rounded-lg w-[30px] h-[30px] flex justify-center items-center mr-2">
-                          <img
-                            src="../images/icons/file.png"
-                            className="object-none"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex flex-col">
-                        <h2 className="text-[14px] font-semibold text-gray-700">
-                          {fileItem.name}
-                        </h2>
-                        <h2 className="text-[14px] text-gray-600">
-                          {Math.round(fileItem.size / 1024)} KB
-                        </h2>
-                        <a
-                          href={fileItem.url}
-                          download={fileItem.name} // Add download attribute
-                          className="text-[12px] text-blue-400 underline my-auto"
-                        >
-                          Download
-                        </a>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div>No files uploaded</div>
-                )}
-              </div>
+              )}
+
+              {/* Render uploaded files */}
+              {files && files.length > 0 && (
+                <div className="file-section">
+                  <h3 className="text-lg font-medium">Uploaded Files:</h3>
+                  <ul className="list-disc ml-4">
+                    {files.map((file, index) => (
+                      <li key={index} className="text-blue-500">
+                        <a href={file.url} download={file.name}>
+                          {file.name}
+                        </a>{" "}
+                        - {file.size} bytes
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </>
         )}

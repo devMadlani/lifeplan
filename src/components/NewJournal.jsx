@@ -92,88 +92,84 @@ function NewJournal({ onSave, existingData }) {
   };
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 h-[758px] flex-grow">
-        <div className="bg-[rgba(252,252,253,1)] flex justify-between">
-          <h1 className="text-[20px] text-[rgba(16,24,40,1)] my-2 mx-4">
-            {title || "New Journal"}
-          </h1>
-        </div>
-        <h1 className="text-center text-xs text-[rgba(152,162,179,1)]">
-          {new Date().toLocaleString()}
+    <div className="flex flex-col gap-4 p-4 h-full w-full sm:max-w-4xl mx-auto sm:border-l">
+      <div className="bg-[rgba(252,252,253,1)] flex justify-between p-2">
+        <h1 className="text-lg sm:text-2xl text-[rgba(16,24,40,1)]">
+          {title || "New Journal"}
         </h1>
-        <div className="min-w-[320px] max-w-[826px] flex justify-center">
-          <form className="flex flex-wrap flex-col items-center gap-2">
-            <div>
-              <h1 htmlFor="title" className="text-[14px] mb-1">
-                Title
-              </h1>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                id="title"
-                className="text-[16px] border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)] border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl pl-4 h-[44px] w-[300px] sm:w-[520px] lg:w-[766px]"
-                placeholder="Enter your title"
-              />
-            </div>
-            <div>
-              <h1 htmlFor="description" className="text-[14px] mb-1">
-                Description
-              </h1>
-              <ReactQuill
-                value={value}
-                onChange={setValue}
-                modules={modules}
-                formats={[
-                  "header",
-                  "font",
-                  "bold",
-                  "italic",
-                  "underline",
-                  "image",
-                  "list",
-                ]}
-                className="text-[16px] min-w-[300px] sm:w-[520px] lg:w-[766px]"
-              />
-            </div>
-            <div>
-              <TagsInput tags={tags} setTags={setTags} />
-            </div>
-            <div className="flex flex-wrap gap-7 justify-center">
-              <AudioRecorder onAudioUrlChange={setAudioUrl} />
-              <VideoRecorder onVideoUrlChange={setVideoUrl} />
-            </div>
-            <FileUploader files={files} setFiles={setFiles} />
-            <div className="flex gap-1 pt-0 border-t border-[rgba(234,236,240,1)] min-w-[320px] w-[826px] justify-end">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="mt-3 rounded-xl border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)] border-[rgba(208,213,221,1)] px-4 py-[10px] text-[14px] text-[rgba(52, 64, 84, 1)] font-semibold"
-              >
-                Cancel
-                <img
-                  className="image ml-[5px] mt-[1px]"
-                  src="/images/arrow.png"
-                  alt=""
-                />
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                className="mt-3 mr-6 rounded-lg bg-[rgba(127,86,217,1)] border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)] border-[rgba(127,86,217,1)] px-4 py-[10px] text-[14px] text-[rgba(255,255,255,1)] font-semibold shadow-sm shadow-[rgba(16,24,40,0.05)]"
-              >
-                Save
-                <img
-                  className="image ml-[5px] mt-[1px]"
-                  src="/images/arrow.png"
-                  alt=""
-                />
-              </button>
-            </div>
-          </form>
-        </div>
       </div>
+
+      <h1 className="text-center text-xs sm:text-sm text-[rgba(152,162,179,1)]">
+        {new Date().toLocaleString()}
+      </h1>
+
+      <form className="flex flex-col items-center gap-4">
+        <div className="">
+          <label htmlFor="title" className="text-sm mb-1 block">
+            Title
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            id="title"
+            className="text-base border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl p-3  min-w-[300px] sm:w-[520px] lg:w-[766px] "
+            placeholder="Enter your title"
+          />
+        </div>
+
+        <div className="">
+          <label htmlFor="description" className="text-sm mb-1 block">
+            Description
+          </label>
+          <ReactQuill
+            value={value}
+            onChange={setValue}
+            modules={modules}
+            formats={[
+              "header",
+              "font",
+              "bold",
+              "italic",
+              "underline",
+              "image",
+              "list",
+            ]}
+            className="text-base  w-[300px] sm:w-[520px] lg:w-[766px]"
+          />
+        </div>
+
+        <div className="">
+          <TagsInput tags={tags} setTags={setTags} />
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <AudioRecorder onAudioUrlChange={setAudioUrl} />
+          <VideoRecorder onVideoUrlChange={setVideoUrl} />
+        </div>
+
+        <div className="">
+          <FileUploader files={files} setFiles={setFiles} />
+        </div>
+
+        <div className="flex gap-2 w-full justify-end mt-4">
+          <button
+            type="button"
+            onClick={resetForm}
+            className="rounded-xl border px-4 py-2 text-sm font-semibold text-[rgba(52, 64, 84, 1)]"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            className="rounded-lg bg-[rgba(127,86,217,1)] px-4 py-2 text-sm font-semibold text-white"
+          >
+            Save
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
