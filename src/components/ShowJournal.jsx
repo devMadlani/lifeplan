@@ -248,12 +248,12 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
               </div>
 
               {/* Render audio */}
-              {audioUrl && (
+              {true && (
                 <audio
                   controls
-                  className="my-2"
+                  className="my-2 max-w-[300px] self-center"
                   src={audioUrl}
-                  style={{ maxWidth: "700px" }}
+          
                 />
               )}
 
