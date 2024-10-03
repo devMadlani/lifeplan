@@ -248,7 +248,7 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
               </div>
 
               {/* Render audio */}
-              {true && (
+              {audioUrl && (
                 <audio
                   controls
                   className="my-2 max-w-[300px] self-center"
