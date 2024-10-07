@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { openDB } from "idb"; // Ensure you have idb installed for IndexedDB operations
+import React, { useRef, useState, useEffect } from "react";
+import { openDB } from "idb";
 
 const AudioRecorder = ({ onSave }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -80,7 +80,14 @@ const AudioRecorder = ({ onSave }) => {
 
     // Save to IndexedDB
     const db = await openDB("myJournal", 1);
-    await db.put("allJournal", { id: new Date().toISOString(), audioUrl: url });
+
+    // Store the blob instead of the URL
+    const audioData = await blob.arrayBuffer(); // Get the audio data as ArrayBuffer
+
+    await db.put("allJournal", {
+      id: new Date().toISOString(),
+      audio: audioData,
+    }); // Store audio data
 
     // Clear recorded chunks for next recording
     recordedChunksRef.current = [];
@@ -90,6 +97,15 @@ const AudioRecorder = ({ onSave }) => {
       onSave(url);
     }
   };
+
+  // Cleanup URL on component unmount
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl); // Clean up URL
+      }
+    };
+  }, [audioUrl]);
 
   return (
     <div className="flex flex-col">
