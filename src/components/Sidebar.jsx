@@ -15,13 +15,11 @@ function Sidebar() {
 
   return (
     <div>
-      <div className="relative">
-        {/* Hamburger Button */}
+      {/* <div className="relative">
         <button onClick={toggleHum} className="ml-2 mt-5 inline sm:hidden">
           ☰
         </button>
 
-        {/* Sidebar for small screens (as a modal) */}
         {humBurger && (
           <div className="fixed inset-0  bg-gray-800 bg-opacity-75 z-50 flex justify-start sm:hidden">
             <div className="w-[244px] bg-white shadow-lg p-4 h-full overflow-y-auto sm:w-[0px]">
@@ -249,7 +247,7 @@ function Sidebar() {
             </div>
           </div>
         )}
-      </div>
+      </div> */}
       <div className={`hidden sm:flex flex-col `}>
         <img
           style={{

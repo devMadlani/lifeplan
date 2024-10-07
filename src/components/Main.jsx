@@ -11,7 +11,7 @@ function Main() {
   }, []);
   return (
     <Router>
-      <div className="flex">
+      <div className="sm:flex">
         <div>
           <Sidebar />
         </div>

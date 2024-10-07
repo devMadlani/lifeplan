@@ -137,11 +137,8 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
   }
 
   return (
-    <div className="w-[310px] sm:w-[526px] md:w-[600px] lg:w-[851px] p-4 sm:border-l">
-      <button className="mb-4 p-2 bg-gray-200 sm:hidden" onClick={onBackClick}>
-        &lt;Back
-      </button>
-      <div className="flex flex-col gap-4">
+    <div className="w-[100%] sm:w-[526px] md:w-[600px] lg:w-[851px] sm:p-4 sm:border-l">
+      <div className="">
         {isEditing ? (
           <NewJournal
             onSave={(data) => {
@@ -159,10 +156,19 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
           />
         ) : (
           <>
-            <div className="bg-[rgba(252,252,253,1)] flex justify-between">
-              <h1 className="text-[20px] text-[rgba(16,24,40,1)] my-2 mx-4">
-                {title || "Journal"}
-              </h1>
+            <div className="bg-[rgba(252,252,253,1)] flex justify-between py-4 ">
+              <div className="flex">
+                <button
+                  className="mr-[4px] ml-2 sm:hidden"
+                  onClick={onBackClick}
+                >
+                  <img
+                    src="/images/icons/back.png"
+                    alt=""
+                    className="w-[14px]"
+                  />
+                </button>
+              </div>
               <div className="my-auto flex gap-1 mx-1">
                 <button className="py-1 px-2 flex items-center gap-1 border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm focus:shadow-[rgba(127,86,217,1)] rounded-xl">
                   <img src="../images/icons/share.png" alt="" />
@@ -221,11 +227,14 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
                 </div>
               </div>
             </div>
-            <h1 className="lg:text-center text-xs text-[rgba(152,162,179,1)]">
+            <h1 className="text-[20px] text-[rgba(16,24,40,1)] my-2 mx-4">
+              {title || "Journal"}
+            </h1>
+            <h1 className="lg:text-center text-xs ml-[17px] mb-8 text-[rgba(152,162,179,1)]">
               {selectedEntry?.date || newEntry?.date || "Date Not Available"}
             </h1>
 
-            <div className="flex flex-col px-8 gap-4 flex-grow max-w-[826px]">
+            <div className="flex flex-col gap-4 mx-[17px] flex-grow max-w-[826px]">
               <div className="tags flex flex-wrap gap-2">
                 {tag.length > 0 ? (
                   tag.map((tagItem, index) => (
@@ -279,8 +288,7 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
                 </div>
               )}
 
-              {/* Render uploaded files */}
-              {files && files.length > 0 && (
+              {/* {files && files.length > 0 && (
                 <div className="file-section">
                   <h3 className="text-lg font-medium">Uploaded Files:</h3>
                   <ul className="list-disc ml-4">
@@ -294,7 +302,40 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
                     ))}
                   </ul>
                 </div>
-              )}
+              )} */}
+              <div className="flex flex-wrap  mt-4">
+                {files && files.length > 0 ? (
+                  files.map((fileItem, index) => (
+                    <div key={index} className="flex w-full sm:w-[33%]  my-4">
+                      <div className="flex items-center  justify-center  mr-2">
+                        <div className="border rounded-lg w-[35px] h-[35px] flex self-center mr-2">
+                          <img
+                            src="../images/icons/file.png"
+                            className="object-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <h2 className="text-[14px] font-semibold text-gray-700">
+                          {fileItem.name}
+                        </h2>
+                        <h2 className="text-[14px] text-gray-600">
+                          {Math.round(fileItem.size / 1024)} KB
+                        </h2>
+                        <a
+                          href={fileItem.url}
+                          download={fileItem.name} // Add download attribute
+                          className="text-[12px] text-blue-400 underline my-auto"
+                        >
+                          Download
+                        </a>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div>No files uploaded</div>
+                )}
+              </div>
             </div>
           </>
         )}

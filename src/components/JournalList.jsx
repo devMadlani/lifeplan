@@ -93,7 +93,7 @@ function JournalList({ onAddClick }) {
   );
 
   return (
-    <div className="flex flex-col w-[254px] gap-2 ">
+    <div className="flex flex-col  sm:w-[254px] gap-2 ">
       <div>
         <div className="flex justify-between items-center mt-4 mx-3 ">
           {!showSearch && (
@@ -155,8 +155,8 @@ function JournalList({ onAddClick }) {
         </div>
       </div>
       <div>
-        <div className="flex flex-col w-[232px] mx-auto mt-2 pb-1">
-          <h1 className="text-sm text-[rgba(152,162,179,1)] font-medium">
+        <div className="flex flex-col sm:w-[232px] mx-3  sm:mx-auto mt-2 pb-1">
+          <h1 className="text-sm text-[rgba(152,162,179,1)] font-medium ">
             Today
           </h1>
           {filteredEntries.length > 0 ? (
@@ -164,17 +164,17 @@ function JournalList({ onAddClick }) {
               <div
                 key={entry.id}
                 draggable
-                className="flex flex-col justify-center gap-3  w-full border-b py-[6px] mb-2 cursor-pointer hover:bg-[#f0f0f0] rounded pl-2"
+                className="flex flex-col justify-center gap-3  w-full border-b py-[6px] mb-2 cursor-pointer hover:bg-[#f0f0f0] rounded "
                 onClick={() => setSelectedEntry(entry)} // Set the selected entry
                 onDragStart={(e) => handleDragStart(e, index)} // Start dragging with the index
                 onDragOver={handleDragOver} // Allow dragging over
                 onDrop={(e) => handleDrop(e, index)} // Drop logic
               >
-                <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold truncate">
+                <h1 className="text-sm text-[rgba(12,17,29,1)] font-semibold truncate ">
                   {entry.title}
                 </h1>
                 <div className="flex gap-2">
-                  <h1 className="text-xs text-[rgba(71,84,103,1)] font-medium">
+                  <h1 className="text-xs text-[rgba(71,84,103,1)] font-medium ">
                     {entry.date}
                   </h1>
                 </div>

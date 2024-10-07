@@ -52,8 +52,8 @@ function JournalHome() {
         </div>
 
         <div
-          className={`flex ${
-            isNewJournalVisible || selectedEntry ? "flex  " : "hidden"
+          className={`${
+            isNewJournalVisible || selectedEntry ? "flex" : "hidden"
           }`}
         >
           {isNewJournalVisible ? (

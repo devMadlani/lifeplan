@@ -84,7 +84,7 @@ function FileUploader({ files, setFiles }) {
         </div>
         <p className="text-gray-600 mt-2">
           <span
-            className="text-[rgba(105,65,198,1)] text-sm cursor-pointer font-semibold"
+            className="text-[rgba(127,86,217,1)] text-sm cursor-pointer font-semibold"
             onClick={() => document.getElementById("fileInput").click()}
           >
             Click to upload
@@ -101,29 +101,45 @@ function FileUploader({ files, setFiles }) {
         />
       </div>
 
-      <div className="flex flex-col mt-2">
+      <div className="flex flex-col mt-2 ">
         {files?.map((file) => (
-          <div
-            key={file.name}
-            className="flex justify-between items-center p-2 border-b border-gray-200"
-          >
-            <span>
-              {file.name} ({(file.size / 1024).toFixed(2)} KB)
-            </span>
+          <div className="border-b">
+            <div key={file.name} className=" p-3  border-gray-200">
+              <div className="flex gap-4 justify-between">
+                <div className="flex gap-2">
+                  <div className="border rounded-lg w-[35px] h-[35px] flex mt-2 mr-2">
+                    <img
+                      src="../images/icons/file.png"
+                      className="object-none"
+                    />
+                  </div>
+                  <div className="flex flex-col w-[70%]">
+                    <span className="w-[120px] sm:w-[200px] mb-1 text-gray-700 text-base font-medium">
+                      {file.name}
+                    </span>
+                    <span className="text-gray-600 text-sm font-normal">
+                      {(file.size / 1024).toFixed(2)} KB
+                    </span>
+                  </div>
+                </div>
+                <button onClick={() => handleDelete(file.name)} className="">
+                  <img src="/images/icons/deleteDark.png" alt="" />
+                </button>
+              </div>
+            </div>
             {uploadProgress[file.name] && uploadProgress[file.name] < 100 && (
-              <div className="w-full mx-2 bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full"
-                  style={{ width: `${uploadProgress[file.name]}%` }}
-                ></div>
+              <div className="flex py-2">
+                <div className="w-[90%] mx-12 bg-gray-200 rounded-full h-4 flex items-center">
+                  <div
+                    className="bg-[rgba(127,86,217,1)] h-4 rounded-full"
+                    style={{ width: `${uploadProgress[file.name]}%` }}
+                  ></div>
+                </div>
+                <span className="mr-2 text-sm text-gray-700 font-medium">
+                  {uploadProgress[file.name]}%
+                </span>
               </div>
             )}
-            <button
-              onClick={() => handleDelete(file.name)}
-              className="text-red-500 hover:text-red-700"
-            >
-              Delete
-            </button>
           </div>
         ))}
       </div>
