@@ -1,111 +1,124 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { openDB } from "idb";
 
-const AudioRecorder = ({ onSave }) => {
+const AudioRecorder = ({ onAudioUrlChange }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [recordingTime, setRecordingTime] = useState(0); // For the timer
+  const [errorMessage, setErrorMessage] = useState(null); // State for error messages
   const mediaRecorderRef = useRef(null);
-  const recordedChunksRef = useRef([]);
+  const audioChunksRef = useRef([]);
+  const timerRef = useRef(null); // To keep track of the timer
+  const [audioUrl, setAudioUrl] = useState(null);
 
-  const formatTime = (time) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`;
+  const dbPromise = openDB("myJournal", 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains("allJournal")) {
+        db.createObjectStore("allJournal");
+      }
+    },
+  });
+
+  const saveToIndexedDB = async (audioBlob) => {
+    const db = await dbPromise;
+    await db.put("allJournal", audioBlob, "recordedAudio");
+  };
+
+  const loadFromIndexedDB = async () => {
+    const db = await dbPromise;
+    const storedAudioBlob = await db.get("allJournal", "recordedAudio");
+
+    if (storedAudioBlob) {
+      const url = URL.createObjectURL(storedAudioBlob);
+      setAudioUrl(url);
+      onAudioUrlChange(url);
+    }
+  };
+
+  const startTimer = () => {
+    timerRef.current = setInterval(() => {
+      setRecordingTime((prevTime) => prevTime + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    clearInterval(timerRef.current);
+    timerRef.current = null;
   };
 
   const startRecording = async () => {
     try {
-      setErrorMessage(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
+
       mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-        }
+        audioChunksRef.current.push(event.data);
       };
-      mediaRecorderRef.current.onstop = handleStopRecording;
+
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+        audioChunksRef.current = []; // Clear chunks for the next recording
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+        onAudioUrlChange(url); // Pass the audio URL to parent
+        saveToIndexedDB(audioBlob); // Save to IndexedDB
+      };
+
       mediaRecorderRef.current.start();
       setIsRecording(true);
       setIsPaused(false);
-
-      // Timer for recording time
-      setRecordingTime(0);
-      const timer = setInterval(() => {
-        setRecordingTime((prevTime) => prevTime + 1);
-      }, 1000);
-      mediaRecorderRef.current.timer = timer; // Save timer reference for cleanup
+      setRecordingTime(0); // Reset timer
+      startTimer(); // Start timer
     } catch (error) {
-      setErrorMessage("Error accessing audio devices.");
-      console.error(error);
+      handleError(error);
     }
+  };
+
+  const handleError = (error) => {
+    if (error.name === "NotAllowedError") {
+      setErrorMessage("Permission to access the microphone is denied.");
+    } else if (error.name === "NotFoundError") {
+      setErrorMessage("No microphone was found.");
+    } else {
+      setErrorMessage("An error occurred while accessing your microphone.");
+    }
+    setIsRecording(false);
+    setIsPaused(false);
+    console.error("Error accessing media devices:", error);
   };
 
   const pauseRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.pause();
-      setIsPaused(true);
-      clearInterval(mediaRecorderRef.current.timer); // Stop timer
-    }
-  };
-
-  const resumeRecording = () => {
-    if (mediaRecorderRef.current && isPaused) {
+    if (isPaused) {
       mediaRecorderRef.current.resume();
-      setIsPaused(false);
-
-      // Restart timer
-      const timer = setInterval(() => {
-        setRecordingTime((prevTime) => prevTime + 1);
-      }, 1000);
-      mediaRecorderRef.current.timer = timer;
+      startTimer(); // Resume timer
+    } else {
+      mediaRecorderRef.current.pause();
+      stopTimer(); // Pause timer
     }
+    setIsPaused(!isPaused);
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      clearInterval(mediaRecorderRef.current.timer); // Stop timer
-      setIsRecording(false);
-      setIsPaused(false);
-    }
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+    setIsPaused(false);
+    stopTimer();
   };
 
-  const handleStopRecording = async () => {
-    const blob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
-    const url = URL.createObjectURL(blob);
-    setAudioUrl(url);
-
-    // Save to IndexedDB
-    const db = await openDB("myJournal", 1);
-
-    // Store the blob instead of the URL
-    const audioData = await blob.arrayBuffer(); // Get the audio data as ArrayBuffer
-
-    await db.put("allJournal", {
-      id: new Date().toISOString(),
-      audio: audioData,
-    }); // Store audio data
-
-    // Clear recorded chunks for next recording
-    recordedChunksRef.current = [];
-
-    // Call the parent component's save function if provided
-    if (onSave) {
-      onSave(url);
-    }
-  };
-
-  // Cleanup URL on component unmount
   useEffect(() => {
+    loadFromIndexedDB();
     return () => {
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl); // Clean up URL
-      }
+      stopTimer();
     };
-  }, [audioUrl]);
+  }, []);
+
+  const formatTime = (timeInSeconds) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = timeInSeconds % 60;
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
 
   return (
     <div className="flex flex-col">
@@ -120,13 +133,7 @@ const AudioRecorder = ({ onSave }) => {
                 ? "bg-yellow-500"
                 : ""
             } transition duration-200`}
-            onClick={
-              isRecording
-                ? isPaused
-                  ? resumeRecording
-                  : pauseRecording
-                : startRecording
-            }
+            onClick={isRecording ? pauseRecording : startRecording}
           >
             <img
               src={
@@ -146,7 +153,6 @@ const AudioRecorder = ({ onSave }) => {
                 src="/images/icons/stop.png"
                 onClick={stopRecording}
                 className="object-contain w-8 h-8"
-                alt="Stop Recording"
               />
             </div>
           )}

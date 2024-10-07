@@ -149,7 +149,7 @@ function NewJournal({ onSave, existingData }) {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <AudioRecorder onSave={handleAudioSave} />
+          <AudioRecorder onAudioUrlChange={setAudioUrl} />
           <VideoRecorder onVideoUrlChange={setVideoUrl} />
         </div>
 
