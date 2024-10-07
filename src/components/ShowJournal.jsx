@@ -34,7 +34,10 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
           setTitle(entry.title);
           setDate(entry.date);
           setAudioUrl(entry.audioUrl);
-          setVideoUrl(entry.videoUrl);
+          console.log(entry.audioUrl );
+          setVideoUrl(entry.videoUrl || "/audio/vide.mp4");
+          console.log(entry.videoUrl);
+
           setTag(entry.tags || []);
 
           if (entry.files && entry.files.length > 0) {
@@ -82,7 +85,11 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
 
     fetchFilesAndTags();
   }, [selectedEntry, newEntry]);
-
+  useEffect(() => {
+    return () => {
+      files.forEach((file) => URL.revokeObjectURL(file.url));
+    };
+  }, [files]);
   const toggleFullscreen = () => {
     if (videoRef.current) {
       if (!isFullscreen) {
@@ -253,7 +260,6 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
                   controls
                   className="my-2 max-w-[300px] self-center"
                   src={audioUrl}
-          
                 />
               )}
 

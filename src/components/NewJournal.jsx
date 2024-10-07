@@ -46,7 +46,7 @@ function NewJournal({ onSave, existingData }) {
       title,
       description: value,
       tags,
-      audioUrl,
+      audioUrl: audioUrl || "/audio/audio.mp3",
       videoUrl,
       files:
         files.length > 0

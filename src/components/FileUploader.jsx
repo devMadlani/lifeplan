@@ -2,23 +2,22 @@ import React, { useState } from "react";
 
 function FileUploader({ files, setFiles }) {
   const [errorMessage, setErrorMessage] = useState("");
-  const [uploadProgress, setUploadProgress] = useState({}); // Track progress for each file
+  const [uploadProgress, setUploadProgress] = useState({}); 
 
   const handleFiles = (uploadedFiles) => {
     const validFiles = [];
     for (let i = 0; i < uploadedFiles.length; i++) {
       const file = uploadedFiles[i];
       if (validateFile(file)) {
-        validFiles.push(file); // Collect valid files
+        validFiles.push(file);
       }
     }
 
-    // Prevent duplicates by checking the existing file names
     const existingFileNames = new Set(files.map((f) => f.name));
     const newFiles = validFiles.filter((f) => !existingFileNames.has(f.name));
 
-    setFiles((prevFiles) => [...prevFiles, ...newFiles]); // Add new files to existing
-    newFiles.forEach((file) => simulateFileUpload(file)); // Simulate upload for valid files
+    setFiles((prevFiles) => [...prevFiles, ...newFiles]); 
+    newFiles.forEach((file) => simulateFileUpload(file)); 
   };
 
   const validateFile = (file) => {

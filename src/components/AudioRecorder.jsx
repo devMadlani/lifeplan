@@ -4,11 +4,11 @@ import { openDB } from "idb";
 const AudioRecorder = ({ onAudioUrlChange }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0); // For the timer
-  const [errorMessage, setErrorMessage] = useState(null); // State for error messages
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  const timerRef = useRef(null); // To keep track of the timer
+  const timerRef = useRef(null);
   const [audioUrl, setAudioUrl] = useState(null);
 
   const dbPromise = openDB("myJournal", 1, {
@@ -20,18 +20,30 @@ const AudioRecorder = ({ onAudioUrlChange }) => {
   });
 
   const saveToIndexedDB = async (audioBlob) => {
-    const db = await dbPromise;
-    await db.put("allJournal", audioBlob, "recordedAudio");
+    try {
+      const db = await dbPromise;
+      await db.put("allJournal", audioBlob, "recordedAudio");
+      console.log("Audio saved to IndexedDB successfully.");
+    } catch (error) {
+      console.error("Failed to save to IndexedDB:", error);
+    }
   };
 
   const loadFromIndexedDB = async () => {
-    const db = await dbPromise;
-    const storedAudioBlob = await db.get("allJournal", "recordedAudio");
+    try {
+      const db = await dbPromise;
+      const storedAudioBlob = await db.get("allJournal", "recordedAudio");
 
-    if (storedAudioBlob) {
-      const url = URL.createObjectURL(storedAudioBlob);
-      setAudioUrl(url);
-      onAudioUrlChange(url);
+      if (storedAudioBlob) {
+        const url = URL.createObjectURL(storedAudioBlob);
+        setAudioUrl(url);
+        onAudioUrlChange(url);
+        console.log("Loaded audio from IndexedDB successfully.");
+      } else {
+        console.log("No audio found in IndexedDB.");
+      }
+    } catch (error) {
+      console.error("Failed to load from IndexedDB:", error);
     }
   };
 
@@ -56,6 +68,11 @@ const AudioRecorder = ({ onAudioUrlChange }) => {
       };
 
       mediaRecorderRef.current.onstop = () => {
+        if (audioChunksRef.current.length === 0) {
+          console.error("No audio chunks recorded.");
+          return; // No data to save
+        }
+        
         const audioBlob = new Blob(audioChunksRef.current, {
           type: "audio/wav",
         });
@@ -101,10 +118,12 @@ const AudioRecorder = ({ onAudioUrlChange }) => {
   };
 
   const stopRecording = () => {
-    mediaRecorderRef.current.stop();
-    setIsRecording(false);
-    setIsPaused(false);
-    stopTimer();
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setIsPaused(false);
+      stopTimer();
+    }
   };
 
   useEffect(() => {
@@ -136,14 +155,8 @@ const AudioRecorder = ({ onAudioUrlChange }) => {
             onClick={isRecording ? pauseRecording : startRecording}
           >
             <img
-              src={
-                isPaused
-                  ? "../images/icons/pause.png"
-                  : "../images/icons/audio.png"
-              }
-              className={`${
-                isPaused ? "object-cover w-8 h-8" : "object-contain w-4 h-6"
-              }`}
+              src={isPaused ? "../images/icons/pause.png" : "../images/icons/audio.png"}
+              className={`${isPaused ? "object-cover w-8 h-8" : "object-contain w-4 h-6"}`}
               alt="Audio Icon"
             />
           </div>
@@ -153,20 +166,16 @@ const AudioRecorder = ({ onAudioUrlChange }) => {
                 src="/images/icons/stop.png"
                 onClick={stopRecording}
                 className="object-contain w-8 h-8"
+                alt="Stop Recording"
               />
             </div>
           )}
         </div>
         <h1 className="text-sm mt-2 text-gray-700">
           <span className="text-purple-600 font-semibold">
-            {isRecording
-              ? isPaused
-                ? "Paused"
-                : formatTime(recordingTime)
-              : "Click"}
+            {isRecording ? (isPaused ? "Paused" : formatTime(recordingTime)) : "Click"}
           </span>{" "}
-          to{" "}
-          {isRecording ? (isPaused ? "resume" : "pause") : "start recording..."}
+          to {isRecording ? (isPaused ? "resume" : "pause") : "start recording..."}
         </h1>
       </div>
 
