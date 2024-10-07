@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
-import { openDB } from "idb";
+import React, { useRef, useState } from 'react';
+import { openDB } from 'idb'; // Ensure you have idb installed for IndexedDB operations
 
 const AudioRecorder = ({ onSave }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -74,20 +74,13 @@ const AudioRecorder = ({ onSave }) => {
   };
 
   const handleStopRecording = async () => {
-    const blob = new Blob(recordedChunksRef.current, { type: "audio/webm" });
+    const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
     const url = URL.createObjectURL(blob);
     setAudioUrl(url);
 
     // Save to IndexedDB
-    const db = await openDB("myJournal", 1);
-
-    // Store the blob instead of the URL
-    const audioData = await blob.arrayBuffer(); // Get the audio data as ArrayBuffer
-
-    await db.put("allJournal", {
-      id: new Date().toISOString(),
-      audio: audioData,
-    }); // Store audio data
+    const db = await openDB('myJournal', 1);
+    await db.put('allJournal', { id: new Date().toISOString(), audioUrl: url });
 
     // Clear recorded chunks for next recording
     recordedChunksRef.current = [];
@@ -97,15 +90,6 @@ const AudioRecorder = ({ onSave }) => {
       onSave(url);
     }
   };
-
-  // Cleanup URL on component unmount
-  useEffect(() => {
-    return () => {
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl); // Clean up URL
-      }
-    };
-  }, [audioUrl]);
 
   return (
     <div className="flex flex-col">
@@ -120,23 +104,11 @@ const AudioRecorder = ({ onSave }) => {
                 ? "bg-yellow-500"
                 : ""
             } transition duration-200`}
-            onClick={
-              isRecording
-                ? isPaused
-                  ? resumeRecording
-                  : pauseRecording
-                : startRecording
-            }
+            onClick={isRecording ? (isPaused ? resumeRecording : pauseRecording) : startRecording}
           >
             <img
-              src={
-                isPaused
-                  ? "../images/icons/pause.png"
-                  : "../images/icons/audio.png"
-              }
-              className={`${
-                isPaused ? "object-cover w-8 h-8" : "object-contain w-4 h-6"
-              }`}
+              src={isPaused ? "../images/icons/pause.png" : "../images/icons/audio.png"}
+              className={`${isPaused ? "object-cover w-8 h-8" : "object-contain w-4 h-6"}`}
               alt="Audio Icon"
             />
           </div>
@@ -153,11 +125,7 @@ const AudioRecorder = ({ onSave }) => {
         </div>
         <h1 className="text-sm mt-2 text-gray-700">
           <span className="text-purple-600 font-semibold">
-            {isRecording
-              ? isPaused
-                ? "Paused"
-                : formatTime(recordingTime)
-              : "Click"}
+            {isRecording ? (isPaused ? "Paused" : formatTime(recordingTime)) : "Click"}
           </span>{" "}
           to{" "}
           {isRecording ? (isPaused ? "resume" : "pause") : "start recording..."}
