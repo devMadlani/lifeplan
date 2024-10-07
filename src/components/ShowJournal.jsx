@@ -12,6 +12,7 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
   const [audioUrl, setAudioUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [files, setFiles] = useState([]);
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -32,11 +33,10 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
         if (entry) {
           setTitle(entry.title);
           setDate(entry.date);
-          setAudioUrl(entry.audioUrl); // Ensure audio URL is set
+          setAudioUrl(entry.audioUrl);
           setVideoUrl(entry.videoUrl);
           setTag(entry.tags || []);
 
-          // Handle files
           if (entry.files && entry.files.length > 0) {
             const filePromises = entry.files.map((file) => {
               const blob = new Blob([file.data], { type: file.type });
@@ -82,13 +82,11 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
 
     fetchFilesAndTags();
   }, [selectedEntry, newEntry]);
-
   useEffect(() => {
     return () => {
       files.forEach((file) => URL.revokeObjectURL(file.url));
     };
   }, [files]);
-
   const toggleFullscreen = () => {
     if (videoRef.current) {
       if (!isFullscreen) {
@@ -106,6 +104,15 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
     } else if (newEntry) {
       deleteJournal(newEntry.id);
     }
+  };
+
+  const handleImageDelete = (imageUrl) => {
+    const updatedDescription = description.replace(
+      `<img src="${imageUrl}" style="width: 300px;" alt="" />`,
+      ""
+    );
+    setDescription(updatedDescription);
+    setImages(images.filter((img) => img !== imageUrl));
   };
 
   // Ensure text wraps properly in the description
@@ -250,45 +257,39 @@ function ShowJournal({ newEntry, journals, onEdit, onBackClick }) {
                   controls
                   className="my-2 max-w-[300px] self-center"
                   src={audioUrl}
-                  preload="metadata" // Optional: load metadata
                 />
               )}
 
               {/* Render video */}
               {videoUrl && (
-                <div className="video max-w-[700px] mx-auto">
+                <div className="video max-w-[700px] mx-auto flex flex-col">
                   <video
                     ref={videoRef}
-                    controls
-                    className="w-full h-auto"
                     src={videoUrl}
-                    onPause={() => setIsPlaying(false)}
-                    onPlay={() => setIsPlaying(true)}
-                  />
+                    className="mx-auto w-full h-auto"
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    controls
+                  ></video>
                   <button
+                    className="border px-2 py-1 my-4 rounded-md w-[150px] mx-auto text-[rgba(127,86,217,1)]"
                     onClick={toggleFullscreen}
-                    className="mt-2 text-sm text-blue-500"
                   >
                     {isFullscreen ? "Exit Fullscreen" : "Go Fullscreen"}
                   </button>
                 </div>
               )}
 
-              {/* Render files */}
-              {files.length > 0 && (
-                <div className="files my-2">
-                  <h2 className="text-lg font-bold">Uploaded Files:</h2>
-                  <ul className="list-disc pl-5">
+              {/* Render uploaded files */}
+              {files && files.length > 0 && (
+                <div className="file-section">
+                  <h3 className="text-lg font-medium">Uploaded Files:</h3>
+                  <ul className="list-disc ml-4">
                     {files.map((file, index) => (
-                      <li key={index}>
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600"
-                        >
-                          {file.name} ({file.size} bytes)
-                        </a>
+                      <li key={index} className="text-blue-500">
+                        <a href={file.url} download={file.name}>
+                          {file.name}
+                        </a>{" "}
+                        - {file.size} bytes
                       </li>
                     ))}
                   </ul>

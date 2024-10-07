@@ -6,9 +6,9 @@ import { openDatabase } from "../indexedDB/OpenDB";
 import JournalHome from "./JournalHome";
 
 function Main() {
-  useEffect(()=>{
-    openDatabase()
-  },[])
+  useEffect(() => {
+    openDatabase();
+  }, []);
   return (
     <Router>
       <div className="flex">

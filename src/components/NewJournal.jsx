@@ -46,7 +46,7 @@ function NewJournal({ onSave, existingData }) {
       title,
       description: value,
       tags,
-      audioUrl: audioUrl || "/audio/audio.mp3", // Use the saved audio URL
+      audioUrl,
       videoUrl,
       files:
         files.length > 0
@@ -69,6 +69,7 @@ function NewJournal({ onSave, existingData }) {
           .objectStore("allJournal")
           .put(journalData);
       } else {
+        // Save new journal
         await saveJournal(db, journalData);
       }
 
@@ -88,12 +89,6 @@ function NewJournal({ onSave, existingData }) {
       ["bold", "italic", "underline"],
       ["image"],
     ],
-  };
-
-  // Update the audio URL in state when it's saved in the AudioRecorder
-  const handleAudioSave = (savedAudioUrl) => {
-    console.log("Audio saved with URL:", savedAudioUrl);
-    setAudioUrl(savedAudioUrl); // Store the saved audio URL in state
   };
 
   return (
@@ -118,7 +113,7 @@ function NewJournal({ onSave, existingData }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             id="title"
-            className="text-base border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl p-3 min-w-[300px] sm:w-[520px] lg:w-[766px]"
+            className="text-base border focus:border-[rgba(127,86,217,1)] outline-none focus:shadow-sm border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl p-3  min-w-[300px] sm:w-[520px] lg:w-[766px] "
             placeholder="Enter your title"
           />
         </div>
@@ -140,7 +135,7 @@ function NewJournal({ onSave, existingData }) {
               "image",
               "list",
             ]}
-            className="text-base w-[300px] sm:w-[520px] lg:w-[766px]"
+            className="text-base  w-[300px] sm:w-[520px] lg:w-[766px] "
           />
         </div>
 
