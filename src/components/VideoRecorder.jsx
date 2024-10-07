@@ -10,20 +10,22 @@ const VideoRecorder = ({ onVideoUrlChange }) => {
   const videoChunksRef = useRef([]);
 
   // IndexedDB setup
-  const dbPromise = openDB("video-recordings", 1, {
+  const dbPromise = openDB("myJournal", 1, {
     upgrade(db) {
-      db.createObjectStore("videoStore");
+      if (!db.objectStoreNames.contains("allJournal")) {
+        db.createObjectStore("allJournal");
+      }
     },
   });
 
   const saveToIndexedDB = async (videoBlob) => {
     const db = await dbPromise;
-    await db.put("videoStore", videoBlob, "recordedVideo");
+    await db.put("allJournal", videoBlob, "recordedVideo");
   };
 
   const loadFromIndexedDB = async () => {
     const db = await dbPromise;
-    const storedVideoBlob = await db.get("videoStore", "recordedVideo");
+    const storedVideoBlob = await db.get("allJournal", "recordedVideo");
 
     if (storedVideoBlob) {
       const url = URL.createObjectURL(storedVideoBlob);
@@ -107,7 +109,7 @@ const VideoRecorder = ({ onVideoUrlChange }) => {
   return (
     <div className="flex flex-col">
       <h1 className="text-[14px] mb-1">Record Video</h1>
-      <div className="relative border border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl px-4 w-[290px] h-[114px] lg:w-[366px] flex flex-col items-center justify-center shadow-lg transition-shadow duration-300 hover:shadow-2xl">
+      <div className="relative border border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl px-4 w-[290px] h-[114px] lg:w-[366px] flex flex-col items-center justify-center transition-shadow duration-300 ">
         <div
           onClick={isRecordingVideo ? stopRecordingVideo : startRecordingVideo}
           className={`cursor-pointer border rounded-full w-[50px] h-[50px] flex justify-center items-center ${
@@ -130,14 +132,12 @@ const VideoRecorder = ({ onVideoUrlChange }) => {
         </h1>
       </div>
 
-      {/* Display any error messages */}
       {errorMessage && (
         <div className="mt-2 text-red-500 text-sm">
           <strong></strong> {errorMessage}
         </div>
       )}
 
-      {/* Video Element to display the stream */}
       <video
         ref={videoRef}
         autoPlay
@@ -146,7 +146,6 @@ const VideoRecorder = ({ onVideoUrlChange }) => {
         } rounded-xl mt-4 w-full max-w-[290px] lg:max-w-[366px]`}
       />
 
-      {/* Playback and Download */}
       {videoUrl && (
         <div className="mt-4">
           <h2 className="text-sm text-gray-600">Recorded Video:</h2>

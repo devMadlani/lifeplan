@@ -78,17 +78,21 @@ function FileUploader({ files, setFiles }) {
       <div
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        className="text-[16px] border relative border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl px-4 w-[300px] h-[124px] lg:w-[760px] flex flex-col items-center justify-center cursor-pointer"
+        className="text-[16px] border relative border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl px-4  w-[300px] h-[126px] lg:w-[760px] flex flex-col items-center  pt-3 cursor-pointer"
       >
-        <p className="text-gray-600">
-          Drag and drop files here or{" "}
+        <div className="py-[10px] px-[9px] border rounded-xl">
+          <img src="/images/icons/upload.png" alt="" />
+        </div>
+        <p className="text-gray-600 mt-2">
           <span
-            className="text-blue-600 cursor-pointer"
+            className="text-[rgba(105,65,198,1)] text-sm cursor-pointer font-semibold"
             onClick={() => document.getElementById("fileInput").click()}
           >
-            click to upload
+            Click to upload
           </span>
+          <span className="text-sm text-gray-600"> or drag and drop</span>
         </p>
+        <p className="text-sm text-gray-600">(max. 5mo)</p>
         <input
           id="fileInput"
           type="file"

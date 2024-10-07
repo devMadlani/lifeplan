@@ -1,26 +1,32 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { openDB } from "idb";
 
 const AudioRecorder = ({ onAudioUrlChange }) => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0); // For the timer
+  const [errorMessage, setErrorMessage] = useState(null); // State for error messages
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const timerRef = useRef(null); // To keep track of the timer
   const [audioUrl, setAudioUrl] = useState(null);
 
-  const dbPromise = openDB("audio-recordings", 1, {
+  const dbPromise = openDB("myJournal", 1, {
     upgrade(db) {
-      db.createObjectStore("audioStore");
+      if (!db.objectStoreNames.contains("allJournal")) {
+        db.createObjectStore("allJournal");
+      }
     },
   });
 
   const saveToIndexedDB = async (audioBlob) => {
     const db = await dbPromise;
-    await db.put("audioStore", audioBlob, "recordedAudio");
+    await db.put("allJournal", audioBlob, "recordedAudio");
   };
 
   const loadFromIndexedDB = async () => {
     const db = await dbPromise;
-    const storedAudioBlob = await db.get("audioStore", "recordedAudio");
+    const storedAudioBlob = await db.get("allJournal", "recordedAudio");
 
     if (storedAudioBlob) {
       const url = URL.createObjectURL(storedAudioBlob);
@@ -29,64 +35,147 @@ const AudioRecorder = ({ onAudioUrlChange }) => {
     }
   };
 
+  const startTimer = () => {
+    timerRef.current = setInterval(() => {
+      setRecordingTime((prevTime) => prevTime + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    clearInterval(timerRef.current);
+    timerRef.current = null;
+  };
+
   const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorderRef.current = new MediaRecorder(stream);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
 
-    mediaRecorderRef.current.ondataavailable = (event) => {
-      audioChunksRef.current.push(event.data);
-    };
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
 
-    mediaRecorderRef.current.onstop = () => {
-      const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-      audioChunksRef.current = []; // Clear chunks for the next recording
-      const url = URL.createObjectURL(audioBlob);
-      setAudioUrl(url);
-      onAudioUrlChange(url); // Pass the audio URL to parent
-      saveToIndexedDB(audioBlob); // Save to IndexedDB
-    };
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+        audioChunksRef.current = []; // Clear chunks for the next recording
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+        onAudioUrlChange(url); // Pass the audio URL to parent
+        saveToIndexedDB(audioBlob); // Save to IndexedDB
+      };
 
-    mediaRecorderRef.current.start();
-    setIsRecording(true);
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      setIsPaused(false);
+      setRecordingTime(0); // Reset timer
+      startTimer(); // Start timer
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const handleError = (error) => {
+    if (error.name === "NotAllowedError") {
+      setErrorMessage("Permission to access the microphone is denied.");
+    } else if (error.name === "NotFoundError") {
+      setErrorMessage("No microphone was found.");
+    } else {
+      setErrorMessage("An error occurred while accessing your microphone.");
+    }
+    setIsRecording(false);
+    setIsPaused(false);
+    console.error("Error accessing media devices:", error);
+  };
+
+  const pauseRecording = () => {
+    if (isPaused) {
+      mediaRecorderRef.current.resume();
+      startTimer(); // Resume timer
+    } else {
+      mediaRecorderRef.current.pause();
+      stopTimer(); // Pause timer
+    }
+    setIsPaused(!isPaused);
   };
 
   const stopRecording = () => {
     mediaRecorderRef.current.stop();
     setIsRecording(false);
+    setIsPaused(false);
+    stopTimer();
   };
 
-  // Load audio from IndexedDB when the component mounts
-  React.useEffect(() => {
+  useEffect(() => {
     loadFromIndexedDB();
+    return () => {
+      stopTimer();
+    };
   }, []);
+
+  const formatTime = (timeInSeconds) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = timeInSeconds % 60;
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
 
   return (
     <div className="flex flex-col">
       <h1 className="text-[14px] mb-1">Record Voice</h1>
-      <div
-        className="relative border border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl px-4 w-[290px] h-[114px] lg:w-[366px] flex flex-col items-center justify-center shadow-lg transition-shadow duration-300 hover:shadow-2xl"
-        onClick={isRecording ? stopRecording : startRecording}
-      >
-        <div
-          className={`cursor-pointer border rounded-full w-[50px] h-[50px] flex justify-center items-center ${
-            isRecording ? "bg-red-500" : ""
-          } hover:${
-            isRecording ? "bg-red-600" : "hoverEffect"
-          } transition duration-200`}
-        >
-          <img
-            src="../images/icons/audio.svg"
-            className="object-none w-8 h-8"
-            alt="Audio Icon"
-          />
+      <div className="relative border border-[rgba(208,213,221,1)] bg-[rgba(255,255,255,0.02)] rounded-xl px-4 w-[290px] h-[114px] lg:w-[366px] flex flex-col items-center justify-center transition-shadow duration-300">
+        <div className="flex justify-center gap-2">
+          <div
+            className={`cursor-pointer border rounded-full w-[50px] h-[50px] flex justify-center items-center ${
+              isRecording && !isPaused
+                ? "bg-red-500"
+                : isPaused
+                ? "bg-yellow-500"
+                : ""
+            } transition duration-200`}
+            onClick={isRecording ? pauseRecording : startRecording}
+          >
+            <img
+              src={
+                isPaused
+                  ? "../images/icons/pause.png"
+                  : "../images/icons/audio.png"
+              }
+              className={`${
+                isPaused ? "object-cover w-8 h-8" : "object-contain w-4 h-6"
+              }`}
+              alt="Audio Icon"
+            />
+          </div>
+          {isRecording && (
+            <div className="cursor-pointer border rounded-full w-[50px] h-[50px] flex justify-center items-center bg-gray-500">
+              <img
+                src="/images/icons/stop.png"
+                onClick={stopRecording}
+                className="object-contain w-8 h-8"
+              />
+            </div>
+          )}
         </div>
         <h1 className="text-sm mt-2 text-gray-700">
           <span className="text-purple-600 font-semibold">
-            {isRecording ? "Recording..." : "Click"}
+            {isRecording
+              ? isPaused
+                ? "Paused"
+                : formatTime(recordingTime)
+              : "Click"}
           </span>{" "}
-          to {isRecording ? "stop recording" : "start recording..."}
+          to{" "}
+          {isRecording ? (isPaused ? "resume" : "pause") : "start recording..."}
         </h1>
       </div>
+
+      {errorMessage && (
+        <div className="mt-2 text-red-500 text-sm">
+           {errorMessage}
+        </div>
+      )}
+
       {audioUrl && (
         <div className="mt-4">
           <h2 className="text-sm text-gray-600">Recorded Audio:</h2>

@@ -6,45 +6,39 @@ import JournalNav from "./JournalNav";
 import { useJournal } from "../context/JournalContext";
 
 function JournalHome() {
-  const { selectedEntry, setSelectedEntry, journals } = useJournal(); // Use context for journals and selectedEntry
+  const { selectedEntry, setSelectedEntry, journals } = useJournal();
   const [isNewJournalVisible, setIsNewJournalVisible] = useState(false);
 
   const handleAddJournalClick = () => {
-    setSelectedEntry(null); // Clear selected entry
-    setIsNewJournalVisible(true); // Show NewJournal for adding a new entry
+    setSelectedEntry(null);
+    setIsNewJournalVisible(true);
   };
 
   const handleSaveJournal = (entry) => {
     if (entry.id) {
-      // Update existing entry
       setSelectedEntry(entry);
     } else {
-      // Add new entry
       setSelectedEntry(entry);
       // Uncomment the next line if you want to maintain the list
       // setJournals((prevJournals) => [...prevJournals, entry]);
     }
-    setIsNewJournalVisible(false); // Hide NewJournal after saving
+    setIsNewJournalVisible(false);
   };
 
   const handleEditJournal = (entry) => {
-    setSelectedEntry(entry); // Set the selected entry for editing
-    setIsNewJournalVisible(true); // Show NewJournal for editing
+    setSelectedEntry(entry);
+    setIsNewJournalVisible(true);
   };
-
-  // Function to handle back click
   const handleBackClick = () => {
-    setSelectedEntry(null); // Clear the selected entry
+    setSelectedEntry(null);
   };
 
-  // Determine whether to show JournalList or the selected entry
   const isJournalListVisible = !isNewJournalVisible && !selectedEntry;
 
   return (
     <div className="flex flex-col">
       <JournalNav />
       <div className="flex flex-col md:flex-row">
-        {/* Show JournalList only on small devices */}
         <div
           className={`${
             isJournalListVisible ? "block" : "hidden sm:block"
@@ -53,12 +47,10 @@ function JournalHome() {
           <JournalList
             onAddClick={handleAddJournalClick}
             setSelectedEntry={setSelectedEntry}
-            onEditClick={handleEditJournal} // Pass the edit function
-            journals={journals} // Pass journals to JournalList if needed
+            onEditClick={handleEditJournal}
           />
         </div>
 
-        {/* Conditional rendering for NewJournal or ShowJournal */}
         <div
           className={`flex ${
             isNewJournalVisible || selectedEntry ? "flex  " : "hidden"
@@ -73,8 +65,9 @@ function JournalHome() {
             <ShowJournal
               newEntry={selectedEntry}
               journals={journals}
-              onEdit={handleEditJournal} // Pass the edit function to ShowJournal
-              onBackClick={handleBackClick} // Pass back click handler
+              onEdit={handleEditJournal}
+              l
+              onBackClick={handleBackClick}
             />
           )}
         </div>

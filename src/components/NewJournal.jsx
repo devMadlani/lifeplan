@@ -135,7 +135,7 @@ function NewJournal({ onSave, existingData }) {
               "image",
               "list",
             ]}
-            className="text-base  w-[300px] sm:w-[520px] lg:w-[766px]"
+            className="text-base  w-[300px] sm:w-[520px] lg:w-[766px] "
           />
         </div>
 

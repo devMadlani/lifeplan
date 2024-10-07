@@ -26,7 +26,7 @@ const TagsInput = ({ tags, setTags }) => {
       <h1 htmlFor="tags" className="text-[14px] mb-1">
         Tags
       </h1>
-      <div className="flex flex-wrap items-center gap-1 border border-[rgba(208,213,221,1)] rounded-xl px-4 min-w-[300px] sm:w-[520px] lg:w-[766px] min-h-[44px] focus-within:border-[rgba(127,86,217,1)] py-2">
+      <div className="flex flex-wrap items-center gap-1 border border-[rgba(208,213,221,1)] rounded-xl px-4 min-w-[300px] sm:w-[520px] lg:w-[766px] min-h-[44px] focus-within:border-[rgba(127,86,217,1)] py-2  ">
         {tags.map((tag, index) => (
           <div
             key={index}
